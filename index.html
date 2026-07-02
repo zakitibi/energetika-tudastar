@@ -3,173 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="0; url=Energetika.html">
+<link rel="canonical" href="Energetika.html">
 <title>Energetika – Tudástár</title>
 <style>
-  :root{
-    --bg:#0f1720; --card:#17212b; --card2:#1d2a36; --ink:#e8eef3; --muted:#9fb0bd;
-    --amber:#f5b400; --green:#2ecc71; --blue:#4aa3ff; --border:#2a3a48;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{
-    background:linear-gradient(180deg,#0f1720,#0b1219 60%);
-    color:var(--ink); font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    min-height:100vh; padding:20px 16px 48px;
-  }
-  .wrap{max-width:760px;margin:0 auto}
-  header{text-align:center;margin:14px 0 26px}
-  header .logo{font-size:44px;line-height:1}
-  h1{font-size:26px;margin:10px 0 4px}
-  header p{color:var(--muted);margin:0;font-size:14px}
-  .grid{display:grid;grid-template-columns:1fr;gap:14px}
-  @media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
-  .card{
-    display:block;text-decoration:none;color:inherit;background:var(--card);
-    border:1px solid var(--border);border-radius:16px;padding:18px 18px;
-    transition:transform .12s ease,border-color .12s ease,background .12s ease;
-  }
-  .card:active{transform:scale(.985)}
-  .card:hover{border-color:var(--amber);background:var(--card2)}
-  .card .ic{font-size:30px}
-  .card h2{font-size:18px;margin:10px 0 4px}
-  .card p{margin:0;color:var(--muted);font-size:13.5px}
-  .section-title{margin:30px 4px 12px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-  #newsList{display:grid;gap:10px}
-  .news-item{
-    display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);
-    border-radius:12px;padding:13px 15px;cursor:pointer;color:inherit;text-decoration:none;
-  }
-  .news-item:hover{border-color:var(--blue);background:var(--card2)}
-  .news-item .m{font-size:22px}
-  .news-item .t{font-weight:600}
-  .news-item .s{color:var(--muted);font-size:12.5px}
-  .hint{color:var(--muted);font-size:13px;padding:10px 4px}
-  footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12.5px}
-  footer a{color:var(--blue)}
-  #reader{position:fixed;inset:0;background:#0b1219;overflow:auto;display:none;padding:16px 16px 60px;z-index:50}
-  #reader .bar{display:flex;gap:10px;align-items:center;position:sticky;top:0;background:#0b1219;
-    padding:6px 0 12px;margin:-4px 0 10px;border-bottom:1px solid var(--border)}
-  #reader .bar button{background:var(--card2);color:var(--ink);border:1px solid var(--border);
-    border-radius:10px;padding:8px 14px;font-size:14px;cursor:pointer}
-  #reader .bar a{margin-left:auto;color:var(--amber);text-decoration:none;font-size:14px}
-  .md{max-width:760px;margin:0 auto}
-  .md h1{font-size:23px;border-bottom:1px solid var(--border);padding-bottom:8px}
-  .md h2{font-size:19px;margin-top:26px;color:var(--amber)}
-  .md h3{font-size:16px;margin-top:18px}
-  .md a{color:var(--blue);word-break:break-word}
-  .md blockquote{border-left:3px solid var(--border);margin:0;padding:2px 14px;color:var(--muted)}
-  .md hr{border:none;border-top:1px solid var(--border);margin:22px 0}
-  .md em{color:var(--green);font-style:normal;font-weight:600}
-  .md code{background:#0f1720;padding:1px 5px;border-radius:5px}
+  html,body{margin:0;height:100%;background:#0f1720;color:#e8eef3;
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    display:flex;align-items:center;justify-content:center}
+  a{color:#f5b400}
 </style>
+<script>location.replace('Energetika.html' + location.search + location.hash);</script>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="logo">⚡</div>
-    <h1>Energetika – Tudástár</h1>
-    <p>Magyar · európai · globális energiapiac</p>
-  </header>
-
-  <div class="grid">
-    <a class="card" href="Energetika_Tananyag.html">
-      <div class="ic">📚</div>
-      <h2>Tananyag &amp; Kikérdező</h2>
-      <p>Leckék, összefoglalók és interaktív önellenőrző kvíz.</p>
-    </a>
-    <a class="card" href="Energetika.html">
-      <div class="ic">📖</div>
-      <h2>Energetika – Olvasó</h2>
-      <p>A teljes tudásbázis egyben, olvasásra.</p>
-    </a>
-  </div>
-
-  <div class="section-title">📰 Havi hírek</div>
-  <div id="newsList"><div class="hint">Hírek betöltése…</div></div>
-
-  <footer>
-    <div id="ghlinks"></div>
-    <div style="margin-top:6px">Frissítés: szerkeszd a fájlt a GitHubon → a Pages ~1 perc múlva újraépül.</div>
-  </footer>
-</div>
-
-<div id="reader">
-  <div class="bar">
-    <button onclick="closeReader()">← Vissza</button>
-    <a id="editLink" href="#" target="_blank" rel="noopener">✏️ Szerkesztés GitHubon</a>
-  </div>
-  <div id="mdContent" class="md"></div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script>
-function detectRepo(){
-  const host = location.hostname;
-  const segs = location.pathname.split('/').filter(Boolean);
-  if(host.endsWith('github.io')){
-    const user = host.split('.')[0];
-    const repo = segs.length ? segs[0] : (user + '.github.io');
-    return {user, repo, branch:'main'};
-  }
-  return null;
-}
-const R = detectRepo();
-const rawBase = R ? `https://raw.githubusercontent.com/${R.user}/${R.repo}/${R.branch}` : '.';
-const ghBase  = R ? `https://github.com/${R.user}/${R.repo}` : null;
-
-if(ghBase){
-  document.getElementById('ghlinks').innerHTML =
-    `<a href="${ghBase}" target="_blank" rel="noopener">Repó a GitHubon</a>`;
-}
-
-async function loadNews(){
-  const list = document.getElementById('newsList');
-  if(!R){
-    list.innerHTML = '<div class="hint">A hírlista a közzétett (GitHub Pages) oldalon jelenik meg.</div>';
-    return;
-  }
-  try{
-    const res = await fetch(`https://api.github.com/repos/${R.user}/${R.repo}/contents/news?ref=${R.branch}`);
-    if(!res.ok) throw new Error(res.status);
-    let files = (await res.json())
-      .filter(f => f.name.toLowerCase().endsWith('.md'))
-      .sort((a,b)=> b.name.localeCompare(a.name));
-    if(!files.length){ list.innerHTML = '<div class="hint">Még nincs hírfájl.</div>'; return; }
-    list.innerHTML = '';
-    const months = ['','január','február','március','április','május','június','július','augusztus','szeptember','október','november','december'];
-    files.forEach(f=>{
-      const m = f.name.match(/(\d{4})-(\d{2})/);
-      const label = m ? `${m[1]}. ${months[+m[2]]}` : f.name.replace(/\.md$/,'');
-      const el = document.createElement('a');
-      el.className='news-item';
-      el.innerHTML = `<span class="m">🗞️</span><span><span class="t">${label}</span><br><span class="s">${f.name}</span></span>`;
-      el.onclick = ()=>openReader(f.name, label);
-      list.appendChild(el);
-    });
-  }catch(e){
-    list.innerHTML = `<a class="news-item" href="${ghBase}/tree/${R.branch}/news" target="_blank" rel="noopener">`+
-      `<span class="m">🗞️</span><span><span class="t">Hírek megnyitása a GitHubon</span><br>`+
-      `<span class="s">(a beágyazott lista most nem érhető el)</span></span></a>`;
-  }
-}
-
-async function openReader(file, label){
-  const reader = document.getElementById('reader');
-  const content = document.getElementById('mdContent');
-  content.innerHTML = '<p class="hint">Betöltés…</p>';
-  reader.style.display='block'; window.scrollTo(0,0);
-  document.getElementById('editLink').href = ghBase ? `${ghBase}/edit/${R.branch}/news/${encodeURIComponent(file)}` : '#';
-  try{
-    const res = await fetch(`${rawBase}/news/${encodeURIComponent(file)}`);
-    const md = await res.text();
-    content.innerHTML = marked.parse(md);
-  }catch(e){
-    content.innerHTML = '<p class="hint">Nem sikerült betölteni a fájlt.</p>';
-  }
-}
-function closeReader(){ document.getElementById('reader').style.display='none'; }
-
-loadNews();
-</script>
+<p>⚡ Energetika – Tudástár betöltése… <a href="Energetika.html">Tovább</a></p>
 </body>
 </html>

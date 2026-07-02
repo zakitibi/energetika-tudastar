@@ -1,36 +1,34 @@
 # ⚡ Energetika – Tudástár
 
-Személyes energetikai tudásbázis: magyar, európai és globális energiapiac. Leckék, interaktív kikérdező és havi hírfigyelő.
+Személyes energetikai tudásbázis: magyar, európai és globális energiapiac. Egyetlen egységes web-app (fejlécből váltható **Tananyag · Hírek · Mértékegységek**), interaktív kikérdezővel és élő havi hírfigyelővel.
 
 ## Olvasás (telefonról is)
 
-A közzétett oldal a **GitHub Pages**-en érhető el (a `Settings → Pages` bekapcsolása után):
+A közzétett oldal a **GitHub Pages**-en:
 
 ```
 https://<felhasznalonev>.github.io/energetika-tudastar/
 ```
 
-Ezt érdemes a telefon böngészőjében könyvjelzőnek elmenteni.
+A gyökér automatikusan az egységes appra (`Energetika.html`) irányít. Érdemes a telefon böngészőjében könyvjelzőnek elmenteni.
 
 ## Tartalom
 
 | Fájl | Mi ez |
 |------|-------|
-| `index.html` | Mobilbarát nyitóoldal (ezt szolgálja ki a Pages) |
-| `Energetika_Tananyag.html` | Leckék + összefoglalók + interaktív önellenőrző kvíz |
-| `Energetika.html` | A teljes tudásbázis egyben, olvasásra |
-| `news/YYYY-MM News.md` | Havi magyar energetikai hírgyűjtő |
+| `Energetika.html` | Az egységes app: Tananyag · Hírek · Mértékegységek |
+| `Energetika_Tananyag.html` | A tananyag+kikérdező önálló változata |
+| `news/YYYY-MM News.md` | Havi magyar energetikai hírgyűjtő (a Hírek fül élőben ebből tölt) |
+| `index.html` | Átirányítás az appra (Pages belépési pont) |
+| `vps/` | VPS automatizálás (napi hír + on-demand lecke + setup) |
 
-A nyitóoldal a híreket automatikusan listázza a `news/` mappából — új hónaphoz csak egy új `YYYY-MM News.md` fájlt kell feltölteni.
+A **Hírek** fül minden megnyitáskor a `news/*.md` fájlokból tölt élőben a GitHubról — új hónaphoz csak egy új `YYYY-MM News.md` fájl kell.
 
-## Szerkesztés telefonről
+## Automatizálás
 
-1. Nyisd meg a repót a **GitHub mobil appban** (iOS/Android) vagy a github.com mobilnézetében.
-2. Válaszd ki a fájlt (pl. `news/2026-07 News.md`), koppints a ceruza ikonra.
-3. Írd át, majd **Commit changes**.
-4. A GitHub Pages kb. 1 percen belül újraépül, és a változás megjelenik a weboldalon.
+A generálást egy mindig futó VPS végzi (Claude Code + cron): napi hír H/Sze/P 07:00, plusz on-demand lecke. A GitHub a mester példány. Részletek: `vps/VPS_SETUP.md`.
 
 ## Források és megbízhatóság
 
-A hírtételek több független forrás összevetésével készülnek, és jelölést kapnak:
+A hírtételek több független forrás összevetésével készülnek, jelöléssel:
 `VERIFIED` (2+ független forrás), `PARTIALLY VERIFIED` (egy forrás), `CONFLICTING`, `UNVERIFIED`, illetve `FACT / ASSUMPTION / OPINION / ESTIMATE`.
