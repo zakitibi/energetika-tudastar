@@ -7,6 +7,10 @@
 # =============================================================
 set -euo pipefail
 
+# Mindig az alapértelmezett (előfizetéses) Claude-loginnal fussunk,
+# ne örököljük más agent (pl. Marveen worker) CLAUDE_CONFIG_DIR-jét:
+unset CLAUDE_CONFIG_DIR 2>/dev/null || true
+
 REPO_DIR="${REPO_DIR:-$HOME/energetika-tudastar}"
 BRANCH="${BRANCH:-main}"
 LOG="${LOG:-$HOME/energetika-lesson.log}"
