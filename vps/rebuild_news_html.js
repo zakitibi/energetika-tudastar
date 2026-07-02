@@ -7,7 +7,7 @@ const ROOT=path.resolve(__dirname,'..');
 const FP=path.join(ROOT,'Energetika.html');
 
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function inline(s){s=esc(s);s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');s=s.replace(/\*([^*]+)\*/g,'<em>$1</em>');return s;}
+function inline(s){s=esc(s);s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');s=s.replace(/\*([^*]+)\*/g,'<em>$1</em>');s=s.replace(/(https?:\/\/[^\s<>"]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');return s;}
 function mdToHtml(md){
   const lines=md.split('\n'),out=[];let inList=false;
   const close=()=>{if(inList){out.push('</ul>');inList=false;}};
