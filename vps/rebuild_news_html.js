@@ -7,7 +7,13 @@ const ROOT=path.resolve(__dirname,'..');
 const FP=path.join(ROOT,'Energetika.html');
 
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function inline(s){s=esc(s);s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');s=s.replace(/\*([^*]+)\*/g,'<em>$1</em>');s=s.replace(/(https?:\/\/[^\s<>"]+)/g,'<a href="$1" target="_blank" rel="noopener" onclick="window.top.open(this.href,\'_blank\');return false;">$1</a>');return s;}
+function inline(s){
+  s=esc(s);
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  s=s.replace(/\*([^*]+)\*/g,'<em>$1</em>');
+  s=s.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+  return s;
+}
 function mdToHtml(md){
   const lines=md.split('\n'),out=[];let inList=false;
   const close=()=>{if(inList){out.push('</ul>');inList=false;}};
@@ -68,14 +74,12 @@ function run(){
   const html=fs.readFileSync(FP,'utf8');
   const {s,e,src}=locateSrc(html);
   const ex=extractNEWS(src);
-  // meglévő kulcsszavak megőrzése hónaponként
   if(ex&&ex.obj){for(const y in NEWS){for(const m in NEWS[y]){
     if(ex.obj[y]&&ex.obj[y][m]&&Array.isArray(ex.obj[y][m].keywords))NEWS[y][m].keywords=ex.obj[y][m].keywords;
   }}}
   const newSrc=src.slice(0,ex.bi)+JSON.stringify(NEWS)+src.slice(ex.end);
   const out=html.slice(0,s)+escF(newSrc)+html.slice(e);
   fs.writeFileSync(FP,out);
-  if(process.argv.includes('--dump'))fs.writeFileSync('/tmp/new_news.json',JSON.stringify(NEWS));
   console.log('Energetika.html frissítve | méret:',out.length);
   Object.keys(NEWS).sort().forEach(y=>Object.keys(NEWS[y]).sort().forEach(m=>{
     const o=NEWS[y][m];console.log('  '+y+'-'+m+' -> napok:',o.days.length,'| kulcsszavak:',o.keywords.length);}));
