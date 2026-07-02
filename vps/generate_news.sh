@@ -66,6 +66,11 @@ claude -p "$(cat "$PROMPT_FILE")" \
 
 rm -f "$PROMPT_FILE"
 
+# --- Energetika.html Hírek-adatának frissítése a .md fájlokból ---
+if [ -f "$REPO_DIR/vps/rebuild_news_html.js" ]; then
+  node "$REPO_DIR/vps/rebuild_news_html.js" || echo "figyelem: rebuild_news_html.js hiba"
+fi
+
 # --- Commit + push, ha van változás ---
 if ! git diff --quiet -- "$MONTH_FILE" 2>/dev/null || [ -n "$(git status --porcelain)" ]; then
   git add -A
