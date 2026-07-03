@@ -79,7 +79,12 @@ fi
 if ! git diff --quiet -- "$MONTH_FILE" 2>/dev/null || [ -n "$(git status --porcelain)" ]; then
   git add -A
   git commit -q -m "Napi energetikai hírek: $TODAY"
-  git push -q origin "$BRANCH"
+  # push retry: ha a remote előrébb van (pl. Pages deploy commit), rebase + retry
+  if ! git push -q origin "$BRANCH"; then
+    echo "Push elutasítva, rebase + retry..."
+    git pull --rebase --quiet origin "$BRANCH"
+    git push -q origin "$BRANCH"
+  fi
   echo "OK: feltöltve GitHubra ($TODAY)"
 else
   echo "Nincs változás ($TODAY)"
