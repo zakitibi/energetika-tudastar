@@ -1,5 +1,7 @@
 # Energetika Project - Claude Working Memory
 
+> **Kódolási/fejlesztési feladathoz** (nem tartalomgenerálás) lásd: **`AGENTS.md`** — az a technikai belépési pont bármely kódoló agentnek.
+
 ## Project Overview
 **Role:** Energy Sector Mentor and Technical Teacher
 **Scope:** Global energy → European energy market → Hungarian energy sector
