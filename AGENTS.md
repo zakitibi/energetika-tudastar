@@ -36,12 +36,13 @@ Egy statikus web-app, amit a GitHub Pages szolgál ki, és amelynek tartalmát
 | Útvonal | Mi ez |
 |---|---|
 | `index.html` | Átirányít az `Energetika.html`-re (Pages belépési pont) |
-| `Energetika.html` | **A fő app** — generált egyfájlos SPA, 3 fül (Tananyag/Hírek/Mértékegységek), mind escaped `srcdoc` iframe |
-| `Energetika_Tananyag.html` | A tananyag+kikérdező önálló változata |
+| `Energetika.html` | **A fő app** — generált egyfájlos SPA, 4 fül (Tananyag/Hírek/Mértékegységek/Kvíz), mind escaped `srcdoc` iframe |
+| `Energetika_Tananyag.html` | **A leckék EGYETLEN forrása** (tartalom + sidebar + `const QUIZ`/`TITLES`); a SPA Tananyag+Kvíz füle ebből generálódik |
 | `news/YYYY-MM News.md` | Havi hírgyűjtő (a Hírek fül ebből épül) |
 | `vps/generate_news.sh` | Napi hír generálás (Claude Code headless) → .md → rebuild → push |
 | `vps/generate_lesson.sh "téma"` | On-demand lecke → `summary/lesson_NNN_slug.md` → push |
 | `vps/rebuild_news_html.js` | A `news/*.md`-ből újraépíti az `Energetika.html` beágyazott hír-adatát |
+| `vps/rebuild_tananyag_html.py` | Az `Energetika_Tananyag.html`-ből újraépíti az `Energetika.html` beágyazott **Tananyag ÉS Kvíz** fülét |
 | `vps/VPS_SETUP.md` | VPS beüzemelés (deploy key, cron, stb.) |
 | `.github/workflows/deploy-pages.yml` | Pages deploy workflow |
 | `CLAUDE.md` | Tartalomgenerálás persona + szabályok (Claude Code auto-olvassa) |
@@ -60,6 +61,12 @@ Egy statikus web-app, amit a GitHub Pages szolgál ki, és amelynek tartalmát
   csak a napokat regenerálja. Így a régi hónapok bájt-azonosak maradnak.
 - A mobil-nézet reszponzív CSS-e (`@media`, összecsukható naptár a ☰ gombbal) az
   iframe `<style>`-jában van.
+
+## 4b. A Tananyag + Kvíz fül — KRITIKUS tudnivalók
+- A **leckék egyetlen forrása** az `Energetika_Tananyag.html` (tartalom + sidebar + `const QUIZ` + `const TITLES`). A `Energetika.html` SPA a Tananyag- ÉS a Kvíz-fület ennek **beágyazott, escaped `srcdoc` másolatából** rendereli.
+- **Ha leckét adsz hozzá/módosítasz, NEM elég az `Energetika_Tananyag.html`-t szerkeszteni.** Utána KÖTELEZŐ: `python3 vps/rebuild_tananyag_html.py` — ez újraépíti az `Energetika.html` `view-tan` és `view-quiz` srcdoc-ját a forrásból (a beágyazási igazításokat — `<base target="_blank">` + `embed-override` CSS — megőrzi). Enélkül a Pages-en a régi leckelista marad (ez történt a 15–16. leckével 2026-07-03-án).
+- **`const QUIZ` szerkezet:** top-level kulcsok `"1"`..`"N"`, mindegyik `{"questions":[{l,q,o:[4],a:idx,e}], "cards":[[front,back],…]}`. Új leckénél a `"15"`, `"16"` … kulcs a **QUIZ-objektum LEGFELSŐ szintjére** kerüljön, NE egy előző lecke objektumába. Gyakori hiba: hiányzó záró `}` a 14. lecke után → a 15/16 a 14-be ágyazódik és a kvízből eltűnik. A `TITLES`, a sidebar-`navitem` és az `id="lesson-N"` tartalom darabszáma is egyezzen.
+- Escaping séma (srcdoc szint): `& < > " '` → `&amp; &lt; &gt; &quot; &#x27;` — a rebuild automatikusan kezeli.
 
 ## 5. Tartalmi konvenciók
 - **Hírek:** havi fájl `news/YYYY-MM News.md`. Napok: `## YYYY-MM-DD (ellenőrzés 07:00 CEST)`,
@@ -85,7 +92,8 @@ Egy statikus web-app, amit a GitHub Pages szolgál ki, és amelynek tartalmát
 
 ## 8. Gyakori buktatók
 - Pages **Actions** módban van — ne állítsd branch-deployra.
-- Az `Energetika.html` óriás generált fájl — a hír-adathoz CSAK a `rebuild_news_html.js`-en át nyúlj.
+- Az `Energetika.html` óriás generált fájl — a hír-adathoz CSAK a `rebuild_news_html.js`-en, a Tananyag/Kvíz-adathoz CSAK a `rebuild_tananyag_html.py`-n át nyúlj.
+- Lecke után **mindig** futtasd: `python3 vps/rebuild_tananyag_html.py` — különben a SPA Tananyag/Kvíz füle nem frissül (csak a standalone fájl).
 - A `CLAUDE.md`/`MEMORY.md` a repóban van (publikus repo, email kiszedve). Ne tegyél bele titkot/PII-t.
 
 ## 9. Karbantartás — MINDIG frissítsd ezt a fájlt, ha változik:
@@ -93,4 +101,6 @@ architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos
 
 ### Állapot / változásnapló
 - 2026-07-03: Pages áthelyezve GitHub Actions deployra (branch-deploy beragadt).
+- 2026-07-03: Új **Kvíz** fül (kumulatív kikérdező + villámkártya, 1..N leckéig) az `Energetika.html`-ben.
+- 2026-07-03: Tananyag-szinkron megoldva (`vps/rebuild_tananyag_html.py`); a 15–16. lecke `QUIZ`-szerkezete javítva (tévesen a 14. leckébe ágyazódott).
   Hírek linkek a generátorba építve. Projekt-memória (CLAUDE.md/MEMORY.md) a repóba került.
