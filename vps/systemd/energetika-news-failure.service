@@ -1,0 +1,9 @@
+# systemd USER unit – az energetika-news.service OnFailure= célja.
+[Unit]
+Description=Energetika: hibaértesítés Telegramon
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/energetika-tudastar/.env
+UnsetEnvironment=ANTHROPIC_API_KEY
+ExecStart=/srv/energetika-tudastar/vps/notify_telegram.sh failure
