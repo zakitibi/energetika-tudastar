@@ -1,2 +1,6 @@
 # macOS
 .DS_Store
+
+# Helyi környezeti fájlok és naplók (a script `git add -A`-t futtat)
+.env*
+*.log

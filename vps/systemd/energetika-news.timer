@@ -1,0 +1,10 @@
+# systemd USER timer – H/Sze/P 09:00 magyar idő szerint.
+[Unit]
+Description=Energetika: hírgenerálás H/Sze/P 09:00
+
+[Timer]
+OnCalendar=Mon,Wed,Fri *-*-* 09:00:00 Europe/Budapest
+Persistent=true
+
+[Install]
+WantedBy=timers.target
