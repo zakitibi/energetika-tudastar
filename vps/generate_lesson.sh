@@ -10,8 +10,17 @@ set -euo pipefail
 # Mindig az alapértelmezett (előfizetéses) Claude-loginnal fussunk,
 # ne örököljük más agent (pl. Marveen worker) CLAUDE_CONFIG_DIR-jét:
 unset CLAUDE_CONFIG_DIR 2>/dev/null || true
+# API-kulcs soha: a futás az előfizetéses OAuth tokennel megy (ahogy a hírek).
+unset ANTHROPIC_API_KEY 2>/dev/null || true
+# Kézi (SSH-s) futtatásnál nincs systemd EnvironmentFile: a tokent a szerver
+# beállításaiból vesszük, de CSAK azt a sort (a fájl LOG-ja a híreké).
+ENV_FILE="${ENERGETIKA_ENV_FILE:-/etc/energetika-tudastar/.env}"
+if [ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ] && [ -r "$ENV_FILE" ]; then
+  CLAUDE_CODE_OAUTH_TOKEN="$(sed -n 's/^CLAUDE_CODE_OAUTH_TOKEN=//p' "$ENV_FILE" | tail -1)"
+  export CLAUDE_CODE_OAUTH_TOKEN
+fi
 
-REPO_DIR="${REPO_DIR:-$HOME/energetika-tudastar}"
+REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 BRANCH="${BRANCH:-main}"
 LOG="${LOG:-$HOME/energetika-lesson.log}"
 
