@@ -2,16 +2,19 @@
 # =============================================================
 # Energetika – napi magyar energetikai hírek (VPS, laptop nélkül)
 # Claude Code headless módban generál, majd GitHubra pushol.
-# Ütemezés: cron, H/Sze/P 07:00 (Europe/Budapest).
+# Ütemezés: systemd user timer, H/Sze/P 09:00 (Europe/Budapest),
+# ld. vps/systemd/. Env: /etc/energetika-tudastar/.env (LOG, OAuth token).
 # =============================================================
 set -euo pipefail
 
 # Mindig az alapértelmezett (előfizetéses) Claude-loginnal fussunk,
 # ne örököljük más agent (pl. Marveen worker) CLAUDE_CONFIG_DIR-jét:
 unset CLAUDE_CONFIG_DIR 2>/dev/null || true
+# API-kulcs soha: a futás az előfizetéses OAuth tokennel megy.
+unset ANTHROPIC_API_KEY 2>/dev/null || true
 
 # --- Beállítások ---
-REPO_DIR="${REPO_DIR:-$HOME/energetika-tudastar}"
+REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 BRANCH="${BRANCH:-main}"
 LOG="${LOG:-$HOME/energetika-news.log}"
 
@@ -48,7 +51,7 @@ FÁJLKEZELÉS:
 - A mai naphoz szúrj be egy szekciót a fájl TETEJÉRE (a fejléc után, a korábbi
   napok elé), pontosan ilyen formátumban:
 
-## $TODAY (ellenőrzés 07:00 CEST)
+## $TODAY (ellenőrzés 09:00 CEST)
 
 ### 1. <Cím>
 - **Forrás:** <forrás(ok)> · *<CÍMKE>*

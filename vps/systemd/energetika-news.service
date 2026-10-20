@@ -1,0 +1,15 @@
+# systemd USER unit – telepítés: ld. vps/VPS_SETUP.md, 3. pont.
+[Unit]
+Description=Energetika: hírgenerálás (claude -p) és push a GitHub Pagesre
+OnFailure=energetika-news-failure.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/energetika-tudastar
+EnvironmentFile=/etc/energetika-tudastar/.env
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+# A futás az előfizetéses OAuth tokennel megy, API-kulcsot nem örökölhet.
+UnsetEnvironment=ANTHROPIC_API_KEY
+ExecStart=/srv/energetika-tudastar/vps/generate_news.sh
+ExecStartPost=/srv/energetika-tudastar/vps/notify_telegram.sh success
+TimeoutStartSec=30min

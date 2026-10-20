@@ -4,14 +4,14 @@ Cél: a VPS (mindig fut) generálja a napi hírt és az on-demand leckéket, maj
 GitHubra pushol. A telefon a GitHub Pages-ről olvas, és onnan is triggerelhet.
 
 ```
- Telefon ──(olvas: Pages)──▶ GitHub ◀──(push)── VPS (Claude Code, cron)
+ Telefon ──(olvas: Pages)──▶ GitHub ◀──(push)── VPS (Claude Code, systemd timer)
     └──────(trigger: SSH / GitHub Issue)────────▶ VPS
 ```
 
 ## 0. Előfeltételek a VPS-en
 - Claude Code telepítve és **bejelentkezve** (előfizetéssel). Teszt: `claude -p "ping"`.
 - `git` telepítve.
-- `cron` fut (a legtöbb Linuxon alapból).
+- systemd user manager, lingerrel (`loginctl enable-linger`).
 
 ## 1. Repo klónozása
 ```bash
@@ -44,20 +44,27 @@ git remote set-url origin git@github-energetika:<USER>/energetika-tudastar.git
 git push        # teszt: hibátlanul kell lefutnia
 ```
 
-## 3. Napi hír — cron (H/Sze/P 07:00, magyar idő)
+## 3. Napi hír — systemd user timer (H/Sze/P 09:00, magyar idő)
+A VPS-en a kód a `/srv/energetika-tudastar` checkoutban van, a log a
+`/var/log/energetika-tudastar/news.log`-ban, az env az `/etc/energetika-tudastar/.env`-ben
+(`LOG`, `CLAUDE_CODE_OAUTH_TOKEN` a `claude setup-token`-ből, `TELEGRAM_BOT_TOKEN`,
+`TELEGRAM_CHAT_ID`; `chmod 600`). `ANTHROPIC_API_KEY` ne kerüljön bele.
+
+Telepítés (a unitfájlok forrása a repóban: `vps/systemd/`):
 ```bash
-crontab -e
+cp /srv/energetika-tudastar/vps/systemd/energetika-news*.{service,timer} ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now energetika-news.timer
+loginctl enable-linger "$USER"   # hogy kijelentkezve is fusson (sudo kellhet)
 ```
-Illeszd be (a `CRON_TZ` a magyar időt biztosítja UTC-s VPS-en is):
-```
-CRON_TZ=Europe/Budapest
-0 7 * * 1,3,5 /home/<USER>/energetika-tudastar/vps/generate_news.sh
-```
-Kézi teszt futtatás:
+Kézi futtatás és ellenőrzés:
 ```bash
-~/energetika-tudastar/vps/generate_news.sh
-tail -n 40 ~/energetika-news.log
+systemctl --user start energetika-news.service
+tail -n 40 /var/log/energetika-tudastar/news.log
 ```
+Sikeres futás után a `vps/notify_telegram.sh` rövid üzenetet küld a Pages-linkkel,
+hibánál az `energetika-news-failure.service` (`OnFailure=`) hibaüzenetet (csak
+`sendMessage`, `getUpdates` soha).
 
 ## 4. A Mac-es feladat kikapcsolása (fontos!)
 Hogy a hír ne generálódjon duplán, a gépeden lévő `magyar-energetikai-hrek`
