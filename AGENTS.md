@@ -49,6 +49,33 @@ Egy statikus web-app, amit a GitHub Pages szolgál ki, és amelynek tartalmát
 | `MEMORY.md` | Projekt-memória (tanulási haladás, leckelista) |
 | `DEV_WORKFLOW.md` | A fejlesztési/üzemeltetési folyamat részletei |
 
+## 3b. A SPA shell fejléce és a bal oldali fiók (drawer)
+Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<script>`.
+(A `rebuild_*` szkriptek csak a `view-*` iframe-ek `srcdoc`-ját írják, a shellt nem.)
+
+- **A navigáció EGY forrásból jön:** a záró script `MENU` tömbjéből épül a fejléc
+  fülsora ÉS a fiók listája is. **Új nézet = egy `MENU`-sor + egy `<div class="view" id="view-<id>">`**
+  (+ egy ikon az `ICON` objektumba). Ne írj kézzel fület vagy menüpontot.
+- **Választóvonal** a fiókban ott kerül be, ahol a `MENU` elem `group` értéke
+  megváltozik — nem csoportonként hardkódolva.
+- **Az aktuális nézet jelölve van, nem elrejtve** (`.drawer-item.current` + `aria-current`).
+- **`window.pageLock`** (pinelt `body` + visszaugró scroll) egy helyen van, mert a fiók
+  és az info-ablak is használja. iOS-en az `overflow:hidden` a `body`-n nem elég.
+- **Az overlay-k sima `<div>`-ek, nem `<dialog>`** (iOS Safari &lt;15.4). Háttérre
+  kattintásnál a feltétel `event.target === overlay`, soha nem a benne ülő panel.
+- **Fejléc sorrend:** ☰ menü → cím → ⓘ info → ↻ újratöltés → „Frissítve: …” időbélyeg.
+  Az ikonok **inline SVG**-k (`currentColor`, nincs ikonfont). Rajz 20–22 px, doboz 40×40.
+- **Az ⓘ panel a live állapotból épül:** nézetenként ● (betöltött) / ▲ (nem) + forráscímke.
+  Amit nem tudunk, azt nem állítjuk — a ↻ gomb nem mutat „naprakész” állapotot, mert
+  statikus Pages mögött nincs verzió-API (a `?v=<ts>` csak a CDN-gyorsítótárat kerüli meg).
+- **A fiók lábrészében a link és a gomb TESTVÉREK** — `<button>` egy `<a>`-ban érvénytelen,
+  és a link nyerne.
+- A Tananyag-iframe saját ☰ gombja az `embed-override` CSS-ben kapja a „Leckék” címkét,
+  hogy ne tűnjön a shell menügombja másolatának. Az `embed-override` blokkot a
+  `rebuild_tananyag_html.py` a *jelenlegi* `view-tan`-ból emeli át, tehát ott kell szerkeszteni.
+- **Nem vettük át** az eredeti mintából az „egy gombos frissítés” (deploy) részt: az csak ott
+  értelmes, ahol a felülethez való hozzáférés önmagában deploy-jogosultság. Ez a lap publikus.
+
 ## 4. A Hírek fül — KRITIKUS tudnivalók
 - A `Energetika.html` egy **generált** fájl. A Hírek-adat a `view-news` iframe
   `srcdoc`-jában, escaped formában él: `const NEWS = {év:{hó:{title,intro,days:[{date,day,header,html,text}],keywords:[[szó,db]]}}}`.
@@ -100,6 +127,8 @@ Egy statikus web-app, amit a GitHub Pages szolgál ki, és amelynek tartalmát
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-20: A SPA shell megkapta a **bal oldali fiókot (drawer)** + ⓘ info-ablakot
+  + ↻ újratöltést; a fülsor és a fiók egyetlen `MENU` tömbből épül (lásd 3b.).
 - 2026-07-03: Pages áthelyezve GitHub Actions deployra (branch-deploy beragadt).
 - 2026-07-03: Új **Kvíz** fül (kumulatív kikérdező + villámkártya, 1..N leckéig) az `Energetika.html`-ben.
 - 2026-07-03: Tananyag-szinkron megoldva (`vps/rebuild_tananyag_html.py`); a 15–16. lecke `QUIZ`-szerkezete javítva (tévesen a 14. leckébe ágyazódott).

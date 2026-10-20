@@ -20,6 +20,60 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
 .view{flex:1;position:relative;overflow:hidden}
 .view iframe{width:100%;height:100%;border:0;display:block;background:#eef1f7}
 .hidden{display:none}
+/* --- fejléc ikongombok (rajz 20-22px, doboz 40x40 = mobil tapintási minimum) --- */
+.iconbtn{flex:none;width:40px;height:40px;display:flex;align-items:center;justify-content:center;padding:0;
+     background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:50%;
+     color:#fff;cursor:pointer;transition:background .15s}
+.iconbtn:hover{background:rgba(255,255,255,.28)}
+.iconbtn:disabled{opacity:.5;cursor:default}
+.iconbtn svg{display:block}
+.stamp{font-size:12px;opacity:.85;white-space:nowrap}
+/* --- bal oldali fiók (drawer) --- */
+.drawer{position:fixed;top:0;left:0;bottom:0;width:276px;max-width:84vw;z-index:60;
+     background:#fff;color:#1c2230;display:flex;flex-direction:column;
+     transform:translateX(-100%);transition:transform .22s ease;box-shadow:4px 0 22px rgba(0,0,0,.18)}
+.drawer.open{transform:none}
+.drawer-head{flex:none;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;
+     padding:14px 16px;font-size:16px;font-weight:800}
+.drawer-head .sub{display:block;margin-top:2px;font-size:11.5px;font-weight:500;opacity:.85}
+.drawer-list{flex:1;overflow:auto;padding:10px 8px}
+.drawer-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;
+     background:transparent;font:inherit;color:inherit;padding:10px 12px;border-radius:10px;cursor:pointer}
+.drawer-item:hover{background:#f0f4fb}
+.drawer-item.current{background:var(--blue);color:#fff}
+.drawer-item svg{flex:none}
+/* a vonal ott van, ahol a `group` VÁLTOZIK — és rövid, mert fajtaváltás, nem szekcióhatár */
+.drawer-divider{height:1px;background:#e2e7f1;margin:8px 16px 8px 46px}
+.drawer-foot{flex:none;display:flex;align-items:center;gap:8px;border-top:1px solid #e2e7f1;padding:10px}
+/* a link és a gomb TESTVÉREK — <button> egy <a>-ban érvénytelen, és a link nyerne */
+.drawer-who{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:6px 8px;
+     border-radius:10px;text-decoration:none;color:inherit}
+.drawer-who:hover{background:#f0f4fb}
+.drawer-who .wtxt{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.avatar{flex:none;width:30px;height:30px;border-radius:50%;background:#d9e2f3;color:var(--blue);
+     display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
+.drawer-foot .iconbtn{background:#eaeef7;border-color:#dbe3f2;color:var(--blue)}
+.drawer-foot .iconbtn:hover{background:#dde5f5}
+/* --- overlay-k: sima div, NEM <dialog> (iOS Safari <15.4 nem tudja a showModal-t) --- */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:50}
+#info-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:70;
+     display:flex;align-items:center;justify-content:center;padding:18px}
+#info-panel{width:100%;max-width:560px;max-height:82vh;overflow:auto;padding:20px 22px;
+     background:#fff;color:#1c2230;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.3)}
+#info-panel h2{margin:0;font-size:17px;color:var(--blue)}
+#info-panel h3{margin:16px 0 6px;font-size:12px;letter-spacing:.7px;text-transform:uppercase;color:#5b6472}
+#info-panel p{margin:8px 0;font-size:14px;line-height:1.55}
+#info-panel ul{list-style:none;margin:6px 0;padding:0;font-size:13.5px}
+#info-panel li{display:flex;gap:9px;align-items:baseline;padding:3px 0}
+#info-panel .ok{color:#2E7D32;font-weight:700}
+#info-panel .warn{color:#B8860B;font-weight:700}
+#info-panel .src{color:#5b6472}
+#info-panel .pfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+#info-panel .btn{background:var(--blue);color:#fff;border:none;border-radius:9px;
+     padding:9px 16px;font:inherit;font-weight:600;cursor:pointer}
+[hidden]{display:none!important}
+@media(max-width:760px){.tabs{display:none}}
+@media(max-width:700px){.stamp{display:none}}
 @media(max-width:600px){
   .bar{padding:8px 12px;gap:6px}
   .brand .sub{display:none}
@@ -28,14 +82,57 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
 }
 </style></head>
 <body>
+<!-- Fejléc sorrend: ☰ menü → cím → ⓘ info → ↻ friss tartalom → időbélyeg -->
 <div class="bar">
+  <button class="iconbtn" id="menubtn" type="button" aria-label="Menü" title="Menü"
+          aria-expanded="false" aria-controls="drawer">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <line x1="4.5" y1="9" x2="19.5" y2="9"/>
+      <line x1="4.5" y1="13" x2="19.5" y2="13"/>
+      <line x1="4.5" y1="17" x2="14.5" y2="17"/>
+    </svg>
+  </button>
   <span class="brand">⚡ Energetika <span class="sub">tananyag · hírek · egységek · kvíz</span></span>
+  <button class="iconbtn" id="infobtn" type="button" aria-label="Mi ez az alkalmazás?" title="Mi ez az alkalmazás?">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="11"/>
+      <!-- a pont külön <circle>: a 0 hosszú <line>-t némelyik böngésző eldobja -->
+      <circle cx="12" cy="7.8" r="0.9" fill="currentColor" stroke="none"/>
+    </svg>
+  </button>
+  <button class="iconbtn" id="reloadbtn" type="button" aria-label="Friss tartalom betöltése" title="Friss tartalom betöltése">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+    </svg>
+  </button>
+  <span class="stamp" id="stamp"></span>
   <span class="spacer"></span>
-  <div class="tabs">
-    <button class="tab active" id="tab-tan" onclick="showView('tan')">📚 Tananyag</button>
-    <button class="tab" id="tab-news" onclick="showView('news')">📰 Hírek</button>
-    <button class="tab" id="tab-units" onclick="showView('units')">📏 Mért.</button>
-    <button class="tab" id="tab-quiz" onclick="showView('quiz')">🎯 Kvíz</button>
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<nav class="drawer" id="drawer" aria-label="Fő navigáció" aria-hidden="true">
+  <div class="drawer-head">⚡ Energetika<span class="sub">energetikai tudástár</span></div>
+  <div class="drawer-list" id="drawer-list"></div>
+  <div class="drawer-foot">
+    <a class="drawer-who" href="https://github.com/zakitibi/energetika-tudastar" target="_blank" rel="noopener">
+      <span class="avatar" aria-hidden="true">E</span><span class="wtxt">Forrás a GitHubon</span>
+    </a>
+    <button class="iconbtn" id="reloadbtn2" type="button" aria-label="Friss tartalom betöltése" title="Friss tartalom betöltése">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+<div class="scrim" id="scrim" hidden></div>
+
+<div id="info-overlay" hidden>
+  <div id="info-panel" role="dialog" aria-modal="true" aria-label="Mi ez az alkalmazás?">
+    <div id="info-content"></div>
   </div>
 </div>
 <div class="view" id="view-tan"><iframe title="Tananyag" srcdoc="&lt;!DOCTYPE html&gt;
@@ -152,7 +249,9 @@ button{font-family:inherit}
      pointer-events:none!important}
 .top h1,.top .sub,.top .spacer{display:none!important}
 .top .burger{pointer-events:auto!important;background:var(--blue)!important;
-     box-shadow:0 2px 8px rgba(0,0,0,.25)!important}
+     box-shadow:0 2px 8px rgba(0,0,0,.25)!important;border-radius:18px!important;padding:4px 13px!important}
+/* a shell fejlécében is van egy ☰ (nézetváltó fiók) — ez itt a leckelista, mondja is meg */
+.top .burger::after{content:&#x27; Leckék&#x27;;font-size:12.5px;font-weight:600;letter-spacing:.2px}
 .side{top:0!important;height:100vh!important}
 @media(max-width:760px){.side{top:0!important}}
 .quizwrap{top:12px!important}
@@ -1443,14 +1542,173 @@ updateInfo();
 &lt;/html&gt;
 "></iframe></div>
 <script>
-const VIEWS=['tan','news','units','quiz'];
+/* ===========================================================================
+   Fejléc + bal oldali fiók + info-ablak.
+   A navigáció EGY forrásból jön: a MENU tömbből épül a fejléc fülsora ÉS a
+   fiók listája is — egy új nézet egy sor itt, nem két helyen kézzel karbantartva.
+   Az ikonok inline SVG-k (öröklik a currentColor-t, nincs letöltendő ikonfont).
+   =========================================================================== */
+const ICON={
+  tan:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+  quiz:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
+  news:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/>',
+  units:'<rect x="2" y="8" width="20" height="8" rx="1.5"/><line x1="7" y1="8" x2="7" y2="12"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="17" y1="8" x2="17" y2="12"/>'
+};
+function svg(k){return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '+
+  'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[k]+'</svg>';}
+
+/* group = a fiókban a választóvonal ott kerül be, ahol ez az érték megváltozik */
+const MENU=[
+  {id:'tan',   label:'Tananyag',       tab:'📚 Tananyag', group:'tanulas',  src:'Energetika_Tananyag.html'},
+  {id:'quiz',  label:'Kvíz',           tab:'🎯 Kvíz',     group:'tanulas',  src:'kvíz + villámkártyák'},
+  {id:'news',  label:'Hírek',          tab:'📰 Hírek',    group:'napi',     src:'news/*.md'},
+  {id:'units', label:'Mértékegységek', tab:'📏 Mért.',    group:'segedlet', src:'beépített táblázat'}
+];
+const VIEWS=MENU.map(m=>m.id);
+
+const drawer=document.getElementById('drawer'), scrim=document.getElementById('scrim'),
+      menubtn=document.getElementById('menubtn'), infoOverlay=document.getElementById('info-overlay'),
+      infoContent=document.getElementById('info-content');
+
+/* --- pageLock: egy helyen, mert több overlay is használja -------------------
+   iOS-en az overflow:hidden a body-n nem tartja meg a lapot, ezért pinelés +
+   visszaugrás. Ez a shell maga nem gördül (a nézetek iframe-en belül), ezért
+   csak akkor nyúlunk a body-hoz, ha tényleg van mit kipinelni.             */
+window.pageLock=(function(){
+  var y=0,depth=0,applied=false;
+  function scrollable(){return document.documentElement.scrollHeight>window.innerHeight+1;}
+  return {
+    lock:function(){
+      if(depth++) return;
+      if(!scrollable() && !window.scrollY) return;
+      y=window.scrollY||0; applied=true;
+      var s=document.body.style; s.position='fixed'; s.top=(-y)+'px'; s.left='0'; s.right='0';
+    },
+    unlock:function(){
+      if(depth===0||--depth) return;
+      if(!applied) return;
+      var s=document.body.style; s.position=''; s.top=''; s.left=''; s.right='';
+      applied=false; window.scrollTo(0,y);
+    }
+  };
+})();
+
+/* --- navigáció felépítése a MENU-ből --------------------------------------- */
+(function buildNav(){
+  var tabs=document.getElementById('tabs'), list=document.getElementById('drawer-list'), prev=null;
+  MENU.forEach(function(m){
+    var b=document.createElement('button');
+    b.className='tab'; b.id='tab-'+m.id; b.type='button'; b.textContent=m.tab;
+    b.addEventListener('click',function(){showView(m.id);});
+    tabs.appendChild(b);
+
+    if(prev!==null && m.group!==prev){
+      var d=document.createElement('div'); d.className='drawer-divider'; list.appendChild(d);
+    }
+    prev=m.group;
+
+    var i=document.createElement('button');
+    i.className='drawer-item'; i.id='dnav-'+m.id; i.type='button';
+    i.innerHTML=svg(m.id)+'<span>'+m.label+'</span>';
+    i.addEventListener('click',function(){showView(m.id); closeDrawer();});
+    list.appendChild(i);
+  });
+})();
+
+/* Az aktuális nézet JELÖLVE van, nem elrejtve: a menü minden nézetben ugyanaz. */
 function showView(v){
-  VIEWS.forEach(x=>{
-    document.getElementById('view-'+x).classList.toggle('hidden',x!==v);
-    document.getElementById('tab-'+x).classList.toggle('active',x===v);
+  MENU.forEach(function(m){
+    document.getElementById('view-'+m.id).classList.toggle('hidden',m.id!==v);
+    var t=document.getElementById('tab-'+m.id); if(t) t.classList.toggle('active',m.id===v);
+    var d=document.getElementById('dnav-'+m.id);
+    if(d){ d.classList.toggle('current',m.id===v);
+           if(m.id===v) d.setAttribute('aria-current','page'); else d.removeAttribute('aria-current'); }
   });
   try{localStorage.setItem('energetika_view',v);}catch(e){}
 }
-try{var v=localStorage.getItem('energetika_view'); if(VIEWS.includes(v)&&v!=='tan') showView(v);}catch(e){}
+
+/* --- fiók ------------------------------------------------------------------ */
+function openDrawer(){
+  drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false');
+  scrim.hidden=false; menubtn.setAttribute('aria-expanded','true'); pageLock.lock();
+  var first=drawer.querySelector('.drawer-item'); if(first) first.focus();  /* nyitott menü = ott is a fókusz */
+}
+function closeDrawer(){
+  if(!drawer.classList.contains('open')) return;
+  drawer.classList.remove('open'); scrim.hidden=true;
+  menubtn.setAttribute('aria-expanded','false'); menubtn.focus();
+  drawer.setAttribute('aria-hidden','true'); pageLock.unlock();
+}
+menubtn.addEventListener('click',function(){ drawer.classList.contains('open')?closeDrawer():openDrawer(); });
+scrim.addEventListener('click',closeDrawer);
+
+/* --- info-ablak: előbb a keret, utána a tartalom ---------------------------- */
+function viewReady(id){
+  try{
+    var f=document.querySelector('#view-'+id+' iframe');
+    var d=f&&(f.contentDocument||(f.contentWindow&&f.contentWindow.document));
+    return !!(d&&d.body&&d.body.childElementCount>0);
+  }catch(e){ return false; }   /* ha nem tudjuk, nem állítjuk, hogy rendben van */
+}
+function buildStamp(){
+  var d=new Date(document.lastModified);
+  return isNaN(d.getTime()) ? '' :
+    d.toLocaleDateString('hu-HU')+' '+d.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'});
+}
+function renderInfo(){
+  var rows=MENU.map(function(m){
+    var ok=viewReady(m.id);
+    return '<li><span class="'+(ok?'ok':'warn')+'" aria-hidden="true">'+(ok?'●':'▲')+'</span>'+
+           '<span><strong>'+m.label+'</strong> <span class="src">· '+m.src+'</span>'+
+           (ok?'':' <span class="src">(még nem töltött be)</span>')+'</span></li>';
+  }).join('');
+  var st=buildStamp();
+  infoContent.innerHTML=
+    '<h2>⚡ Energetika – energetikai tudástár</h2>'+
+    '<p>Egyfájlos, statikus alkalmazás (GitHub Pages). A leckék, a napi hírek, a '+
+    'mértékegység-táblázat és a kvíz ugyanabban a fájlban, külön nézetekben élnek — '+
+    'a bal oldali ☰ menüből vagy a fenti fülekkel válthatsz köztük.</p>'+
+    '<h3>Bekötve</h3><ul>'+rows+'</ul>'+
+    '<h3>Frissítve</h3><p>'+(st?st:'nem olvasható')+
+    ' — a tartalmat a repó generálja; a ↻ gomb a gyorsítótárat kerülve tölti újra a lapot.</p>'+
+    '<div class="pfoot"><button class="btn" type="button" id="info-close">Bezár</button></div>';
+  document.getElementById('info-close').addEventListener('click',closeInfo);
+}
+function openInfo(){
+  closeDrawer();                      /* két egymásra nyíló, lockolt overlay beragasztja a lapot */
+  infoContent.innerHTML='<p>Betöltés…</p>';
+  infoOverlay.hidden=false; pageLock.lock();
+  requestAnimationFrame(renderInfo);  /* a keret azonnal, a tartalom utána */
+}
+function closeInfo(){
+  if(infoOverlay.hidden) return;
+  infoOverlay.hidden=true; pageLock.unlock(); document.getElementById('infobtn').focus();
+}
+document.getElementById('infobtn').addEventListener('click',openInfo);
+infoOverlay.addEventListener('click',function(e){ if(e.target===infoOverlay) closeInfo(); });
+
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape') return;
+  if(!infoOverlay.hidden){ closeInfo(); return; }
+  closeDrawer();
+});
+
+/* --- friss tartalom: a Pages gyorsítótárát megkerülő újratöltés -------------
+   Nincs mögötte deploy/verzió-API (statikus, publikus lap), ezért a gomb nem
+   mutat "naprakész" állapotot — amit nem tudunk, azt nem állítjuk.          */
+function hardReload(btn){
+  if(btn){ btn.disabled=true; }
+  location.replace(location.pathname+'?v='+Date.now());
+}
+document.getElementById('reloadbtn').addEventListener('click',function(){hardReload(this);});
+document.getElementById('reloadbtn2').addEventListener('click',function(){hardReload(this);});
+
+/* --- indulás --------------------------------------------------------------- */
+document.getElementById('stamp').textContent=(function(){var s=buildStamp();return s?'Frissítve: '+s:'';})();
+(function(){
+  var v='tan';
+  try{ var saved=localStorage.getItem('energetika_view'); if(VIEWS.indexOf(saved)>=0) v=saved; }catch(e){}
+  showView(v);
+})();
 </script>
 </body></html>
