@@ -7,11 +7,28 @@ const ROOT=path.resolve(__dirname,'..');
 const FP=path.join(ROOT,'Energetika.html');
 
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// A linkek nem teljes URL-ként jelennek meg, hanem a forrás logójaként (favicon),
+// a link mögötte; a domain a title-ben (hover) és az alt-ban (képernyőolvasó,
+// vagy ha a logó nem töltődik be). A stílus (.srclogo) a view-news srcdoc CSS-ében.
+function host(u){
+  try{return new URL(u.replace(/&amp;/g,'&')).hostname.replace(/^www\./,'');}catch(e){return '';}
+}
+function logoLink(u){
+  const h=host(u);
+  if(!h) return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>';
+  const ico='https://www.google.com/s2/favicons?domain='+encodeURIComponent(h)+'&amp;sz=64';
+  return '<a class="srclogo" href="'+u+'" target="_blank" rel="noopener" title="'+h+'">'+
+         '<img src="'+ico+'" alt="'+h+'" width="18" height="18" loading="lazy"'+
+         // ha a logó nem jön be (offline, adblock, tiltott host): a domain neve marad
+         ' onerror="this.parentNode.className+=\' noimg\';this.parentNode.textContent=this.alt"></a>';
+}
 function inline(s){
   s=esc(s);
   s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
   s=s.replace(/\*([^*]+)\*/g,'<em>$1</em>');
-  s=s.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+  s=s.replace(/(https?:\/\/[^\s<]+)/g,logoLink);
+  // logók között nem kell a " · " elválasztó, a térközt a CSS adja
+  s=s.replace(/<\/a>\s*·\s*(?=<a class="srclogo")/g,'</a>');
   return s;
 }
 function mdToHtml(md){

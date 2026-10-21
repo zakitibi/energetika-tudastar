@@ -104,8 +104,13 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   `srcdoc`-jában, escaped formában él: `const NEWS = {év:{hó:{title,intro,days:[{date,day,header,html,text}],keywords:[[szó,db]]}}}`.
 - **NE szerkeszd kézzel a `const NEWS` blokkot.** A `vps/rebuild_news_html.js`
   regenerálja a `news/*.md`-kből, és a `generate_news.sh` minden futáskor meghívja.
-- **Linkek:** a linkelés a generátorban van (`rebuild_news_html.js` → `inline()`),
-  tiszta `<a target="_blank" rel="noopener">` (popup-hack nélkül), így túléli a regenerálást.
+- **Linkek = forrás-logók.** A linkelés a generátorban van (`rebuild_news_html.js` →
+  `inline()` → `logoLink()`): minden URL a forrás **favicon-jává** válik (Google favicon
+  szolgáltatás, `sz=64`), a link mögötte, a domain a `title`-ben és az `alt`-ban. Ha a logó
+  nem töltődik be (offline, adblock, tiltott host), az `onerror` a domain nevét írja a
+  dobozba (`.srclogo.noimg`). Több link egy sorban: a ` · ` elválasztót a generátor kiszedi.
+  A stílus (`.day a.srclogo…`) a `view-news` srcdoc CSS-ében van — a rebuild megőrzi.
+  Tiszta `<a target="_blank" rel="noopener">`, popup-hack nélkül, így túléli a regenerálást.
 - **Escaping séma** (srcdoc szint): `& < > " '` → `&amp; &lt; &gt; &quot; &#x27;`.
 - **keywords:** a rebuild MEGŐRZI a fájl korábbi (kurált) kulcsszavait hónaponként;
   csak a napokat regenerálja. Így a régi hónapok bájt-azonosak maradnak.
@@ -162,6 +167,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-21: A Hírek linkjei teljes URL helyett forrás-logóként jelennek meg (tartalék: domain név).
 - 2026-10-21: A Tananyag-nézet saját ☰ Leckék gombja elrejtve (a fejléc leckeválasztója váltja ki).
 - 2026-10-21: Leckeválasztó a fejlécben (az aktuális lecke alcímként, belőle legördülő
   leckelista); a Naptár menüpont 📅 ikont kapott.
