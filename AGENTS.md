@@ -111,6 +111,14 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   dobozba (`.srclogo.noimg`). Több link egy sorban: a ` · ` elválasztót a generátor kiszedi.
   A stílus (`.day a.srclogo…`) a `view-news` srcdoc CSS-ében van — a rebuild megőrzi.
   Tiszta `<a target="_blank" rel="noopener">`, popup-hack nélkül, így túléli a regenerálást.
+- **Napi tartalomjegyzék.** A generátor (`mdToHtml(body,'h'+date)` → `tocHtml()`) minden
+  olyan nap elejére, ahol **legalább 2 hír** van, egy soronként egy címes listát tesz
+  (`.daytoc`); a `### N. cím` fejlécek `id="h<dátum>-<n>"` azonosítót kapnak. A linkek
+  **nem sima `href="#…"`-ként** működnek: a view-news srcdoc-ban `<base target="_blank">`
+  van, ami új lapon nyitná őket — ezért `onclick="return tocGo('…')"`. A `tocGo()` a
+  view-news srcdoc scriptjében van: sima görgetés, majd a végén (`scrollend` / 1,5 s)
+  igazító ugrás, mert a menet közben betöltődő forrás-logók elcsúsztathatják a célt.
+  A `.daytoc` stílus és a `h3{scroll-margin-top}` szintén a srcdoc CSS-ében.
 - **Escaping séma** (srcdoc szint): `& < > " '` → `&amp; &lt; &gt; &quot; &#x27;`.
 - **keywords:** a rebuild MEGŐRZI a fájl korábbi (kurált) kulcsszavait hónaponként;
   csak a napokat regenerálja. Így a régi hónapok bájt-azonosak maradnak.
@@ -167,6 +175,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-21: Napi tartalomjegyzék a Hírekben (soronként egy cím, kattintásra odagörget).
 - 2026-10-21: A Hírek linkjei teljes URL helyett forrás-logóként jelennek meg (tartalék: domain név).
 - 2026-10-21: A Tananyag-nézet saját ☰ Leckék gombja elrejtve (a fejléc leckeválasztója váltja ki).
 - 2026-10-21: Leckeválasztó a fejlécben (az aktuális lecke alcímként, belőle legördülő

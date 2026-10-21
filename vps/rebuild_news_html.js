@@ -31,17 +31,32 @@ function inline(s){
   s=s.replace(/<\/a>\s*·\s*(?=<a class="srclogo")/g,'</a>');
   return s;
 }
-function mdToHtml(md){
-  const lines=md.split('\n'),out=[];let inList=false;
+// Napi tartalomjegyzék: a nap tetején soronként egy hír címe, rákattintva oda görget.
+// NEM sima href="#…": a view-news srcdoc-ban <base target="_blank"> van, ami a
+// horgonylinket új lapon nyitná — ezért onclick görget, és return false.
+function plain(s){return esc(s.replace(/\*\*?([^*]+)\*\*?/g,'$1'));}
+function tocHtml(toc){
+  return '<nav class="daytoc" aria-label="A nap hírei"><ul>'+toc.map(t=>
+    // a görgetést a view-news srcdoc tocGo() függvénye végzi (igazítással a végén)
+    '<li><a href="#'+t.id+'" onclick="return tocGo(\''+t.id+'\')">'+t.title+'</a></li>'
+  ).join('')+'</ul></nav>';
+}
+function mdToHtml(md,idp){
+  const lines=md.split('\n'),out=[],toc=[];let inList=false;
   const close=()=>{if(inList){out.push('</ul>');inList=false;}};
   for(let i=0;i<lines.length;i++){const t=lines[i].replace(/\s+$/,'');
-    if(/^###\s+/.test(t)){close();out.push('<h3>'+inline(t.replace(/^###\s+/,''))+'</h3>');}
+    if(/^###\s+/.test(t)){close();const raw=t.replace(/^###\s+/,'');
+      if(idp){const id=idp+'-'+(toc.length+1);toc.push({id,title:plain(raw)});
+        out.push('<h3 id="'+id+'">'+inline(raw)+'</h3>');}
+      else out.push('<h3>'+inline(raw)+'</h3>');}
     else if(/^-\s+/.test(t)){if(!inList){out.push('<ul>');inList=true;}out.push('<li>'+inline(t.replace(/^-\s+/,''))+'</li>');}
     else if(/^-{3,}\s*$/.test(t)){close();out.push('<hr />');}
     else if(t===''){close();}
     else{close();out.push('<p>'+inline(t)+'</p>');}
   }
-  close();return out.join('\n');
+  close();
+  // egyetlen hírnél nincs mit tartalomjegyzékbe szedni
+  return (toc.length>1?tocHtml(toc)+'\n':'')+out.join('\n');
 }
 function parseMonth(md){
   const parts=md.split(/\n(?=##\s+\d{4}-\d{2}-\d{2})/);
@@ -53,7 +68,7 @@ function parseMonth(md){
     const hm=blk.match(/^##\s+(\d{4}-\d{2}-\d{2})[^\n]*/);if(!hm)continue;
     const date=hm[1],day=date.slice(8,10),header=hm[0].replace(/^##\s+/,'').trim();
     const body=blk.slice(hm[0].length).replace(/^\s+/,'');
-    const html=mdToHtml(body);const text=html.replace(/<[^>]+>/g,' ').toLowerCase();
+    const html=mdToHtml(body,'h'+date);const text=html.replace(/<[^>]+>/g,' ').toLowerCase();
     days.push({date,day,header,html,text});
     let m;const re=/\*\*Kulcsszavak:\*\*\s*([^\n]+)/g;
     while((m=re.exec(body))){m[1].split(',').forEach(k=>{k=k.trim().toLowerCase();if(k)kw[k]=(kw[k]||0)+1;});}
