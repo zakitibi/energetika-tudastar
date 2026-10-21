@@ -27,7 +27,6 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
 .iconbtn:hover{background:rgba(255,255,255,.28)}
 .iconbtn:disabled{opacity:.5;cursor:default}
 .iconbtn svg{display:block}
-.stamp{font-size:12px;opacity:.85;white-space:nowrap}
 /* --- bal oldali fiók (drawer) --- */
 .drawer{position:fixed;top:0;left:0;bottom:0;width:276px;max-width:84vw;z-index:60;
      background:#fff;color:#1c2230;display:flex;flex-direction:column;
@@ -45,13 +44,11 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
 /* a vonal ott van, ahol a `group` VÁLTOZIK — és rövid, mert fajtaváltás, nem szekcióhatár */
 .drawer-divider{height:1px;background:#e2e7f1;margin:8px 16px 8px 46px}
 .drawer-foot{flex:none;display:flex;align-items:center;gap:8px;border-top:1px solid #e2e7f1;padding:10px}
-/* a link és a gomb TESTVÉREK — <button> egy <a>-ban érvénytelen, és a link nyerne */
-.drawer-who{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:6px 8px;
-     border-radius:10px;text-decoration:none;color:inherit}
-.drawer-who:hover{background:#f0f4fb}
-.drawer-who .wtxt{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.avatar{flex:none;width:30px;height:30px;border-radius:50%;background:#d9e2f3;color:var(--blue);
-     display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
+.drawer-state{display:flex;flex-direction:column;flex:1;min-width:0;padding:2px 6px;line-height:1.35}
+.drawer-state .slabel{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:#5b6472}
+.drawer-state .sval{font-size:13px;font-weight:700;color:#1c2230}
+.drawer-state .ssub{font-size:11.5px;color:#5b6472}
+.drawer-item .gl{flex:none;width:22px;text-align:center;font-size:16px;line-height:1}
 .drawer-foot .iconbtn{background:#eaeef7;border-color:#dbe3f2;color:var(--blue)}
 .drawer-foot .iconbtn:hover{background:#dde5f5}
 /* --- overlay-k: sima div, NEM <dialog> (iOS Safari <15.4 nem tudja a showModal-t) --- */
@@ -73,7 +70,8 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
      padding:9px 16px;font:inherit;font-weight:600;cursor:pointer}
 [hidden]{display:none!important}
 @media(max-width:760px){.tabs{display:none}}
-@media(max-width:700px){.stamp{display:none}}
+/* a Hírek navigátora 900px fölött állandóan látszik, ott nincs mit nyitni */
+@media(min-width:901px){#dnav-cal{display:none}}
 @media(max-width:600px){
   .bar{padding:8px 12px;gap:6px}
   .brand .sub{display:none}
@@ -94,6 +92,8 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
     </svg>
   </button>
   <span class="brand">⚡ Energetika <span class="sub">tananyag · hírek · egységek · kvíz</span></span>
+  <span class="spacer"></span>
+  <div class="tabs" id="tabs"></div>
   <button class="iconbtn" id="infobtn" type="button" aria-label="Mi ez az alkalmazás?" title="Mi ez az alkalmazás?">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -102,25 +102,18 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
       <circle cx="12" cy="7.8" r="0.9" fill="currentColor" stroke="none"/>
     </svg>
   </button>
-  <button class="iconbtn" id="reloadbtn" type="button" aria-label="Friss tartalom betöltése" title="Friss tartalom betöltése">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
-         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-    </svg>
-  </button>
-  <span class="stamp" id="stamp"></span>
-  <span class="spacer"></span>
-  <div class="tabs" id="tabs"></div>
 </div>
 
 <nav class="drawer" id="drawer" aria-label="Fő navigáció" aria-hidden="true">
   <div class="drawer-head">⚡ Energetika<span class="sub">energetikai tudástár</span></div>
   <div class="drawer-list" id="drawer-list"></div>
   <div class="drawer-foot">
-    <a class="drawer-who" href="https://github.com/zakitibi/energetika-tudastar" target="_blank" rel="noopener">
-      <span class="avatar" aria-hidden="true">E</span><span class="wtxt">Forrás a GitHubon</span>
-    </a>
-    <button class="iconbtn" id="reloadbtn2" type="button" aria-label="Friss tartalom betöltése" title="Friss tartalom betöltése">
+    <div class="drawer-state">
+      <span class="slabel">Utolsó frissítés</span>
+      <span class="sval" id="state-content">—</span>
+      <span class="ssub" id="state-cache"></span>
+    </div>
+    <button class="iconbtn" id="reloadbtn2" type="button" aria-label="Legfrissebb állapot letöltése" title="Legfrissebb állapot letöltése (gyorsítótár ürítésével)">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
@@ -946,7 +939,7 @@ body{font-family:&#x27;Segoe UI&#x27;,system-ui,Arial,sans-serif;background:var(
   .grid{display:flex;flex-direction:column}
   .col{height:auto;overflow:visible}
   .kw{display:none}
-  .navtoggle{display:flex}
+  .navtoggle{display:none}  /* a shell bal oldali menujeben &quot;Naptar&quot; nevvel el */
   .nav{order:2;border-right:none;border-top:1px solid var(--line);max-height:0;overflow:hidden;padding:0 12px;transition:max-height .25s ease,padding .25s ease}
   .nav.open{max-height:50vh;overflow-y:auto;padding:14px 12px}
   .mid{order:3;padding:14px 14px 60px}
@@ -1548,23 +1541,16 @@ updateInfo();
    fiók listája is — egy új nézet egy sor itt, nem két helyen kézzel karbantartva.
    Az ikonok inline SVG-k (öröklik a currentColor-t, nincs letöltendő ikonfont).
    =========================================================================== */
-const ICON={
-  tan:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
-  quiz:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
-  news:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/>',
-  units:'<rect x="2" y="8" width="20" height="8" rx="1.5"/><line x1="7" y1="8" x2="7" y2="12"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="17" y1="8" x2="17" y2="12"/>'
-};
-function svg(k){return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '+
-  'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[k]+'</svg>';}
-
-/* group = a fiókban a választóvonal ott kerül be, ahol ez az érték megváltozik */
+/* group = a fiókban a választóvonal ott kerül be, ahol ez az érték megváltozik
+   act  = nem nézet, hanem művelet (a Naptár a Hírek fül navigátorát nyitja/zárja) */
 const MENU=[
-  {id:'tan',   label:'Tananyag',       tab:'📚 Tananyag', group:'tanulas',  src:'Energetika_Tananyag.html'},
-  {id:'quiz',  label:'Kvíz',           tab:'🎯 Kvíz',     group:'tanulas',  src:'kvíz + villámkártyák'},
-  {id:'news',  label:'Hírek',          tab:'📰 Hírek',    group:'napi',     src:'news/*.md'},
-  {id:'units', label:'Mértékegységek', tab:'📏 Mért.',    group:'segedlet', src:'beépített táblázat'}
+  {id:'tan',   gl:'📚', label:'Tananyag',       tab:'📚 Tananyag', group:'tanulas',  src:'Energetika_Tananyag.html'},
+  {id:'quiz',  gl:'🎯', label:'Kvíz',           tab:'🎯 Kvíz',     group:'tanulas',  src:'kvíz + villámkártyák'},
+  {id:'news',  gl:'📰', label:'Hírek',          tab:'📰 Hírek',    group:'napi',     src:'news/*.md'},
+  {id:'cal',   gl:'☰',  label:'Naptár',         group:'napi',      act:'cal'},
+  {id:'units', gl:'📏', label:'Mértékegységek', tab:'📏 Mért.',    group:'segedlet', src:'beépített táblázat'}
 ];
-const VIEWS=MENU.map(m=>m.id);
+const VIEWS=MENU.filter(m=>!m.act).map(m=>m.id);
 
 const drawer=document.getElementById('drawer'), scrim=document.getElementById('scrim'),
       menubtn=document.getElementById('menubtn'), infoOverlay=document.getElementById('info-overlay'),
@@ -1597,11 +1583,12 @@ window.pageLock=(function(){
 (function buildNav(){
   var tabs=document.getElementById('tabs'), list=document.getElementById('drawer-list'), prev=null;
   MENU.forEach(function(m){
-    var b=document.createElement('button');
-    b.className='tab'; b.id='tab-'+m.id; b.type='button'; b.textContent=m.tab;
-    b.addEventListener('click',function(){showView(m.id);});
-    tabs.appendChild(b);
-
+    if(m.tab){
+      var b=document.createElement('button');
+      b.className='tab'; b.id='tab-'+m.id; b.type='button'; b.textContent=m.tab;
+      b.addEventListener('click',function(){showView(m.id);});
+      tabs.appendChild(b);
+    }
     if(prev!==null && m.group!==prev){
       var d=document.createElement('div'); d.className='drawer-divider'; list.appendChild(d);
     }
@@ -1609,15 +1596,15 @@ window.pageLock=(function(){
 
     var i=document.createElement('button');
     i.className='drawer-item'; i.id='dnav-'+m.id; i.type='button';
-    i.innerHTML=svg(m.id)+'<span>'+m.label+'</span>';
-    i.addEventListener('click',function(){showView(m.id); closeDrawer();});
+    i.innerHTML='<span class="gl" aria-hidden="true">'+m.gl+'</span><span>'+m.label+'</span>';
+    i.addEventListener('click',function(){ m.act?toggleCal():showView(m.id); closeDrawer(); });
     list.appendChild(i);
   });
 })();
 
 /* Az aktuális nézet JELÖLVE van, nem elrejtve: a menü minden nézetben ugyanaz. */
 function showView(v){
-  MENU.forEach(function(m){
+  MENU.filter(function(m){return !m.act;}).forEach(function(m){
     document.getElementById('view-'+m.id).classList.toggle('hidden',m.id!==v);
     var t=document.getElementById('tab-'+m.id); if(t) t.classList.toggle('active',m.id===v);
     var d=document.getElementById('dnav-'+m.id);
@@ -1656,7 +1643,7 @@ function buildStamp(){
     d.toLocaleDateString('hu-HU')+' '+d.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'});
 }
 function renderInfo(){
-  var rows=MENU.map(function(m){
+  var rows=MENU.filter(function(m){return !m.act;}).map(function(m){
     var ok=viewReady(m.id);
     return '<li><span class="'+(ok?'ok':'warn')+'" aria-hidden="true">'+(ok?'●':'▲')+'</span>'+
            '<span><strong>'+m.label+'</strong> <span class="src">· '+m.src+'</span>'+
@@ -1669,8 +1656,9 @@ function renderInfo(){
     'mértékegység-táblázat és a kvíz ugyanabban a fájlban, külön nézetekben élnek — '+
     'a bal oldali ☰ menüből vagy a fenti fülekkel válthatsz köztük.</p>'+
     '<h3>Bekötve</h3><ul>'+rows+'</ul>'+
-    '<h3>Frissítve</h3><p>'+(st?st:'nem olvasható')+
-    ' — a tartalmat a repó generálja; a ↻ gomb a gyorsítótárat kerülve tölti újra a lapot.</p>'+
+    '<h3>Frissítve</h3><p>'+(st?st:'nem olvasható')+' — ennyi a letöltött példány kora. '+
+    'A lap egy napig a gyorsítótárból jön (gyors és offline is nyílik); a fiók alján lévő '+
+    '↻ gomb üríti a gyorsítótárat, és hálózatról húzza le a legutolsó állapotot.</p>'+
     '<div class="pfoot"><button class="btn" type="button" id="info-close">Bezár</button></div>';
   document.getElementById('info-close').addEventListener('click',closeInfo);
 }
@@ -1693,18 +1681,69 @@ document.addEventListener('keydown',function(e){
   closeDrawer();
 });
 
-/* --- friss tartalom: a Pages gyorsítótárát megkerülő újratöltés -------------
-   Nincs mögötte deploy/verzió-API (statikus, publikus lap), ezért a gomb nem
-   mutat "naprakész" állapotot — amit nem tudunk, azt nem állítjuk.          */
-function hardReload(btn){
-  if(btn){ btn.disabled=true; }
-  location.replace(location.pathname+'?v='+Date.now());
+/* --- Naptár: a Hírek fül navigátora a fiókból vezérelve ---------------------
+   A srcdoc iframe azonos eredetű, így közvetlenül elérjük. A nézet saját
+   "☰ Navigátor / Naptár" sávja ezért el van rejtve — ez a menüpont váltja ki. */
+function toggleCal(){
+  showView('news');
+  try{
+    var f=document.querySelector('#view-news iframe');
+    var d=f&&(f.contentDocument||(f.contentWindow&&f.contentWindow.document));
+    var nav=d&&d.querySelector('.nav');
+    if(!nav) return;
+    nav.classList.toggle('open');
+    if(nav.classList.contains('open') && nav.scrollIntoView) nav.scrollIntoView({block:'start'});
+  }catch(e){}
 }
-document.getElementById('reloadbtn').addEventListener('click',function(){hardReload(this);});
-document.getElementById('reloadbtn2').addEventListener('click',function(){hardReload(this);});
+
+/* --- gyorsítótár: 1 napig érvényes (sw.js) ---------------------------------
+   A ↻ gomb nem "újratöltés": üríti a gyorsítótárat, és hálózatról húzza le a
+   legutolsó állapotot. Amíg nem végzett, tiltva van és forog.               */
+var SW_OK=('serviceWorker' in navigator);
+if(SW_OK){
+  navigator.serviceWorker.register('sw.js').catch(function(){ SW_OK=false; });
+}
+function cacheAge(){           /* mikor került le a jelenlegi példány a hálózatról */
+  if(!('caches' in window)) return Promise.resolve(null);
+  return caches.open('energetika-v1')
+    .then(function(c){ return c.match(location.pathname,{ignoreSearch:true}); })
+    .then(function(r){
+      if(!r) return null;
+      var t=Date.parse(r.headers.get('x-cached-at')||'');
+      return isNaN(t)?null:t;
+    }).catch(function(){ return null; });
+}
+function humanAgo(ms){
+  var m=Math.round(ms/60000);
+  if(m<2) return 'épp most';
+  if(m<60) return m+' perce';
+  var h=Math.round(m/60);
+  if(h<24) return h+' órája';
+  return Math.round(h/24)+' napja';
+}
+function paintState(){
+  document.getElementById('state-content').textContent=buildStamp()||'nem olvasható';
+  var sub=document.getElementById('state-cache');
+  if(!SW_OK){ sub.textContent='gyorsítótár: nincs'; return; }
+  cacheAge().then(function(t){
+    sub.textContent = t ? 'letöltve '+humanAgo(Date.now()-t) : 'gyorsítótár: most épül';
+  });
+}
+function refreshNow(btn){
+  btn.disabled=true;
+  var go=function(){ location.replace(location.pathname+'?v='+Date.now()); };
+  if(!('caches' in window)) return go();
+  var sw=navigator.serviceWorker&&navigator.serviceWorker.controller;
+  if(sw) sw.postMessage('CLEAR');
+  caches.keys()
+    .then(function(ks){ return Promise.all(ks.map(function(k){return caches.delete(k);})); })
+    .then(go, go);
+  setTimeout(go,2500);          /* ha a törlés beragadna, akkor is töltsön újra */
+}
+document.getElementById('reloadbtn2').addEventListener('click',function(){refreshNow(this);});
 
 /* --- indulás --------------------------------------------------------------- */
-document.getElementById('stamp').textContent=(function(){var s=buildStamp();return s?'Frissítve: '+s:'';})();
+paintState();
 (function(){
   var v='tan';
   try{ var saved=localStorage.getItem('energetika_view'); if(VIEWS.indexOf(saved)>=0) v=saved; }catch(e){}

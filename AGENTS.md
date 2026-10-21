@@ -36,6 +36,7 @@ Egy statikus web-app, amit a GitHub Pages szolgál ki, és amelynek tartalmát
 | Útvonal | Mi ez |
 |---|---|
 | `index.html` | Átirányít az `Energetika.html`-re (Pages belépési pont) |
+| `sw.js` | Service worker: 1 napig érvényes gyorsítótár (ld. 3b.) |
 | `Energetika.html` | **A fő app** — generált egyfájlos SPA, 4 fül (Tananyag/Hírek/Mértékegységek/Kvíz), mind escaped `srcdoc` iframe |
 | `Energetika_Tananyag.html` | **A leckék EGYETLEN forrása** (tartalom + sidebar + `const QUIZ`/`TITLES`); a SPA Tananyag+Kvíz füle ebből generálódik |
 | `news/YYYY-MM News.md` | Havi hírgyűjtő (a Hírek fül ebből épül) |
@@ -63,13 +64,24 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   és az info-ablak is használja. iOS-en az `overflow:hidden` a `body`-n nem elég.
 - **Az overlay-k sima `<div>`-ek, nem `<dialog>`** (iOS Safari &lt;15.4). Háttérre
   kattintásnál a feltétel `event.target === overlay`, soha nem a benne ülő panel.
-- **Fejléc sorrend:** ☰ menü → cím → ⓘ info → ↻ újratöltés → „Frissítve: …” időbélyeg.
-  Az ikonok **inline SVG**-k (`currentColor`, nincs ikonfont). Rajz 20–22 px, doboz 40×40.
+- **Fejléc sorrend:** ☰ menü (bal szél) → cím → fülsor → ⓘ info (jobb szél). A ☰ és az ⓘ
+  inline SVG (`currentColor`), rajz 20–22 px, doboz 40×40. A **fiók menüpontjai emoji**
+  ikont kapnak (`MENU[].gl`), ugyanazt, ami a fülsoron van.
 - **Az ⓘ panel a live állapotból épül:** nézetenként ● (betöltött) / ▲ (nem) + forráscímke.
-  Amit nem tudunk, azt nem állítjuk — a ↻ gomb nem mutat „naprakész” állapotot, mert
-  statikus Pages mögött nincs verzió-API (a `?v=<ts>` csak a CDN-gyorsítótárat kerüli meg).
-- **A fiók lábrészében a link és a gomb TESTVÉREK** — `<button>` egy `<a>`-ban érvénytelen,
-  és a link nyerne.
+- **A fiók lábrésze:** balra a **frissítési állapot** (a tartalom kora + mikor jött le a
+  hálózatról), jobbra a ↻ gomb. Nem egymásba ágyazva — `<button>` egy `<a>`-ban érvénytelen.
+- **Gyorsítótár: `sw.js` (service worker), 1 nap.** 24 óránál fiatalabb másolat azonnal a
+  cache-ből megy ki, és a háttérben frissül; 24 óra fölött hálózat először, hiba esetén cache;
+  offline a lejárt példány is kimegy. A letöltés idejét az `x-cached-at` fejléc hordozza a
+  bemásolt válaszon — ebből írja ki a lábrész az állapotot. A **↻ gomb** `CLEAR` üzenettel
+  üríti a cache-t, törli a `caches` bejegyzéseket, majd `?v=<ts>`-sel tölt újra.
+  **Új deploy után a felhasználó legfeljebb egy betöltésnyit késik** (a háttér-revalidáció
+  miatt), vagy azonnal frissíthet a ↻-val. Ha a cache szerkezete változik, emeld a `CACHE`
+  nevet (`energetika-v1` → `-v2`).
+- **A „Naptár” menüpont nem nézet, hanem művelet** (`MENU[].act`): a Hírek-nézet `.nav`
+  oszlopát nyitja/zárja a srcdoc iframe-ben (azonos eredetű, közvetlenül elérhető). A nézet
+  saját `#navtoggle` sávja ezért `display:none` a news srcdoc CSS-ében. 900 px fölött a
+  menüpont rejtve van, mert ott a navigátor állandóan látszik.
 - A Tananyag-iframe saját ☰ gombja az `embed-override` CSS-ben kapja a „Leckék” címkét,
   hogy ne tűnjön a shell menügombja másolatának. Az `embed-override` blokkot a
   `rebuild_tananyag_html.py` a *jelenlegi* `view-tan`-ból emeli át, tehát ott kell szerkeszteni.
@@ -127,6 +139,9 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-21: A fiók emoji ikonokat kapott, az ⓘ a fejléc jobb szélére került, a ↻ csak a
+  fiók lábrészében maradt (valódi cache-ürítéssel); új `sw.js` (1 napos cache); a Hírek
+  navigátora „Naptár” menüponttá vált a fiókban.
 - 2026-10-20: A SPA shell megkapta a **bal oldali fiókot (drawer)** + ⓘ info-ablakot
   + ↻ újratöltést; a fülsor és a fiók egyetlen `MENU` tömbből épül (lásd 3b.).
 - 2026-07-03: Pages áthelyezve GitHub Actions deployra (branch-deploy beragadt).
