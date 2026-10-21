@@ -88,6 +88,17 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   függvényét hívja — nincs belőle második, elavulni képes leckelista. Az alcímet egy
   `MutationObserver` tartja szinkronban, ha a nézet saját oldalsávjából választanak.
   Más nézetben a `body.tanview` osztály hiányában nem látszik.
+- **Szófelhő nézet** (`#view-cloud`, csak a fiókban, ☁️): **nem iframe**, a shell rajzolja.
+  Adata a Hírek-nézetből jön: a view-news srcdoc scriptje a végén `window.NEWS_DATA=NEWS;`
+  sorral kiteszi (a `const` nem kerül a window-ra), és a shell ebből, a napok `html`-jének
+  `<strong>Kulcsszavak:</strong>` soraiból számol — **nincs második kulcsszó-másolat**.
+  A tizedesvessző („64,2 millió euró”) nem elválasztó: felbontás előtt kivédjük.
+  Balra függőleges idővonal: **teteje az első hírnap, alja MINDIG a mai nap**; két
+  fogantyú (egér/érintés húzás, sínre kattintás, billentyűk: ↑↓ ±1 nap, PgUp/PgDn ±7,
+  Home/End) állítja a tól–ig időszakot. A pozíciók %-ban vannak, így átméretezésre nincs
+  újraszámolás. A felhő a 90 leggyakoribb kulcsszót mutatja log-skálán, stabil (hash
+  szerinti) sorrendben és színnel, hogy csúsztatáskor ne ugráljon. A kis-nagybetű nem
+  számít külön szónak; a leggyakoribb írásmód jelenik meg.
 - **A „Naptár” menüpont nem nézet, hanem művelet** (`MENU[].act`): a Hírek-nézet `.nav`
   oszlopát nyitja/zárja a srcdoc iframe-ben (azonos eredetű, közvetlenül elérhető). A nézet
   saját `#navtoggle` sávja ezért `display:none` a news srcdoc CSS-ében. 900 px fölött a
@@ -111,6 +122,9 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   dobozba (`.srclogo.noimg`). Több link egy sorban: a ` · ` elválasztót a generátor kiszedi.
   A stílus (`.day a.srclogo…`) a `view-news` srcdoc CSS-ében van — a rebuild megőrzi.
   Tiszta `<a target="_blank" rel="noopener">`, popup-hack nélkül, így túléli a regenerálást.
+- **`window.NEWS_DATA=NEWS;`** a view-news srcdoc scriptjének végén: ebből olvas a shell
+  Szófelhő nézete (ld. 3b.). A rebuild csak a `const NEWS = {…}` objektumot cseréli, ez a sor
+  megmarad — ne töröld.
 - **Napi tartalomjegyzék.** A generátor (`mdToHtml(body,'h'+date)` → `tocHtml()`) minden
   olyan nap elejére, ahol **legalább 2 hír** van, egy soronként egy címes listát tesz
   (`.daytoc`); a `### N. cím` fejlécek `id="h<dátum>-<n>"` azonosítót kapnak. A linkek
@@ -175,6 +189,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-21: Új **Szófelhő** nézet a fiókban: a Hírek kulcsszavaiból, bal oldali függőleges tól–ig idővonallal (első hírnap → ma).
 - 2026-10-21: Napi tartalomjegyzék a Hírekben (soronként egy cím, kattintásra odagörget).
 - 2026-10-21: A Hírek linkjei teljes URL helyett forrás-logóként jelennek meg (tartalék: domain név).
 - 2026-10-21: A Tananyag-nézet saját ☰ Leckék gombja elrejtve (a fejléc leckeválasztója váltja ki).

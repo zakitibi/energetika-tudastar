@@ -95,6 +95,37 @@ body.tanview .brand .sub{display:none}          /* az alcím helyét a lecke ves
 #info-panel .pfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 #info-panel .btn{background:var(--blue);color:#fff;border:none;border-radius:9px;
      padding:9px 16px;font:inherit;font-weight:600;cursor:pointer}
+/* --- Szófelhő nézet: balra függőleges idővonal (tól–ig csúszka), jobbra a felhő --- */
+#view-cloud{background:#eef1f7}
+.cloud-wrap{display:flex;height:100%}
+.tl{flex:none;width:124px;background:#fff;border-right:1px solid #e2e7f1;padding:12px 0;display:flex}
+.tl-track{position:relative;flex:1;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
+.tl-rail{position:absolute;left:54px;top:14px;bottom:14px;width:4px;margin-left:-2px;background:#e2e7f1;border-radius:2px}
+.tl-range{position:absolute;left:54px;width:6px;margin-left:-3px;background:var(--blue2);border-radius:3px}
+.tl-dot{position:absolute;left:54px;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;
+     background:#b8c4dc;pointer-events:none}
+.tl-dot.in{background:rgba(255,255,255,.8)}
+.tl-tick{position:absolute;right:calc(100% - 42px);transform:translateY(-50%);font-size:10.5px;
+     color:#5b6472;white-space:nowrap;pointer-events:none}
+.tl-tick.edge{color:var(--blue)}
+.tl-h{position:absolute;left:54px;z-index:2;width:20px;height:20px;margin:-10px 0 0 -10px;padding:0;
+     border-radius:50%;background:#fff;border:3px solid var(--blue);box-shadow:0 2px 6px rgba(0,0,0,.25);
+     cursor:grab;touch-action:none}
+.tl-h:active{cursor:grabbing}
+.tl-h:focus-visible{outline:3px solid #9ec1ff;outline-offset:2px}
+.tl-h .lbl{position:absolute;left:22px;top:50%;transform:translateY(-50%);background:var(--blue);color:#fff;
+     font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;white-space:nowrap;pointer-events:none}
+.cloud-main{flex:1;min-width:0;overflow:auto;padding:16px 20px 40px}
+.cloud-main h2{margin:0;font-size:18px;color:var(--blue)}
+.cloud-range{margin:4px 0 12px;font-size:12.5px;color:#5b6472}
+.cloud{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 14px;min-height:220px;
+     background:#fff;border:1px solid #e2e7f1;border-radius:14px;padding:22px 18px;line-height:1.15}
+.cloud .w{display:inline-block;font-weight:700;letter-spacing:-.2px;transition:font-size .2s ease,opacity .2s}
+.cloud .empty{color:#5b6472;font-size:14px}
+@media(max-width:600px){
+  .cloud-main{padding:12px 12px 30px}
+  .cloud{padding:16px 10px;gap:2px 10px}
+}
 [hidden]{display:none!important}
 @media(max-width:760px){
   .tabs{display:none}
@@ -1137,6 +1168,9 @@ function tocGo(id){
   setTimeout(fix,1500);
   return false;
 }
+
+/* a shell Szófelhő nézete innen olvassa a híreket (a const nem kerül a window-ra) */
+window.NEWS_DATA=NEWS;
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;"></iframe></div>
 <div class="view hidden" id="view-units"><iframe title="Mértékegységek" srcdoc="&lt;!DOCTYPE html&gt;
@@ -1604,6 +1638,25 @@ updateInfo();
 &lt;/body&gt;
 &lt;/html&gt;
 "></iframe></div>
+<!-- Szófelhő: a Hírek kulcsszavaiból (nem iframe — a shell rajzolja, a Hírek-nézet NEWS_DATA-jából) -->
+<div class="view hidden" id="view-cloud">
+  <div class="cloud-wrap">
+    <aside class="tl" aria-label="Időszak">
+      <div class="tl-track" id="tl-track">
+        <div class="tl-rail"></div>
+        <div class="tl-range" id="tl-range"></div>
+        <div id="tl-marks"></div>
+        <button class="tl-h" id="tl-from" type="button" role="slider" aria-label="Időszak kezdete"><span class="lbl"></span></button>
+        <button class="tl-h" id="tl-to" type="button" role="slider" aria-label="Időszak vége"><span class="lbl"></span></button>
+      </div>
+    </aside>
+    <section class="cloud-main">
+      <h2>☁️ Szófelhő</h2>
+      <div class="cloud-range" id="cloud-range">Betöltés…</div>
+      <div class="cloud" id="cloud" role="list" aria-label="Kulcsszavak gyakoriság szerint"></div>
+    </section>
+  </div>
+</div>
 <script>
 /* ===========================================================================
    Fejléc + bal oldali fiók + info-ablak.
@@ -1618,6 +1671,7 @@ const MENU=[
   {id:'quiz',  gl:'🎯', label:'Kvíz',           tab:'🎯 Kvíz',     group:'tanulas',  src:'kvíz + villámkártyák'},
   {id:'news',  gl:'📰', label:'Hírek',          tab:'📰 Hírek',    group:'napi',     src:'news/*.md'},
   {id:'cal',   gl:'📅', label:'Naptár',         group:'napi',      act:'cal'},
+  {id:'cloud', gl:'☁️', label:'Szófelhő',       group:'napi',     src:'a Hírek kulcsszavai', dep:'news'},
   {id:'units', gl:'📏', label:'Mértékegységek', tab:'📏 Mért.',    group:'segedlet', src:'beépített táblázat'}
 ];
 const VIEWS=MENU.filter(m=>!m.act).map(m=>m.id);
@@ -1682,6 +1736,7 @@ function showView(v){
            if(m.id===v) d.setAttribute('aria-current','page'); else d.removeAttribute('aria-current'); }
   });
   document.body.classList.toggle('tanview',v==='tan');   /* a lecke-alcím csak ott kell */
+  if(v==='cloud' && typeof initCloud==='function') initCloud();
   if(v!=='tan' && typeof closePick==='function') closePick();
   try{localStorage.setItem('energetika_view',v);}catch(e){}
 }
@@ -1717,7 +1772,7 @@ function buildStamp(){
 }
 function renderInfo(){
   var rows=MENU.filter(function(m){return !m.act;}).map(function(m){
-    var ok=viewReady(m.id);
+    var ok=viewReady(m.dep||m.id);
     return '<li><span class="'+(ok?'ok':'warn')+'" aria-hidden="true">'+(ok?'●':'▲')+'</span>'+
            '<span><strong>'+m.label+'</strong> <span class="src">· '+m.src+'</span>'+
            (ok?'':' <span class="src">(még nem töltött be)</span>')+'</span></li>';
@@ -1895,6 +1950,149 @@ function refreshNow(btn){
   setTimeout(go,2500);          /* ha a törlés beragadna, akkor is töltsön újra */
 }
 document.getElementById('reloadbtn2').addEventListener('click',function(){refreshNow(this);});
+
+/* --- Szófelhő --------------------------------------------------------------
+   Forrás: a Hírek-nézet NEWS adata (window.NEWS_DATA), hírenként a
+   „Kulcsszavak:” sor. Balra függőleges idővonal: a teteje az első gyűjtött
+   hírnap, az alja MINDIG a mai nap; két fogantyú állítja a tól–ig időszakot.
+   A pozíciók %-ban vannak megadva, így átméretezéskor nincs mit újraszámolni. */
+var HU_MON=['jan.','febr.','márc.','ápr.','máj.','jún.','júl.','aug.','szept.','okt.','nov.','dec.'];
+var TL=null, PAD=14;
+function dayNum(iso){ var p=iso.split('-'); return Math.round(Date.UTC(+p[0],+p[1]-1,+p[2])/864e5); }
+function numDate(n){ return new Date(n*864e5); }                       /* UTC-ben értendő */
+function fmtLong(n){ var d=numDate(n); return d.getUTCFullYear()+'. '+String(d.getUTCMonth()+1).padStart(2,'0')+'. '+String(d.getUTCDate()).padStart(2,'0')+'.'; }
+function fmtShort(n){ var d=numDate(n); return String(d.getUTCMonth()+1).padStart(2,'0')+'. '+String(d.getUTCDate()).padStart(2,'0')+'.'; }
+function decodeHtml(x){ var t=document.createElement('textarea'); t.innerHTML=x; return t.value; }
+function newsData(){
+  try{ return document.querySelector('#view-news iframe').contentWindow.NEWS_DATA||null; }catch(e){ return null; }
+}
+function cloudData(){
+  var N=newsData(); if(!N) return null;
+  var days=[], re=/<strong>Kulcsszavak:<\/strong>\s*([^<]*)/g;
+  Object.keys(N).forEach(function(y){ Object.keys(N[y]).forEach(function(m){
+    (N[y][m].days||[]).forEach(function(d){
+      var kw=[], mm; re.lastIndex=0;
+      /* a tizedesvessző („64,2 millió euró”) nem elválasztó: előbb kivédjük */
+      while((mm=re.exec(d.html||''))) decodeHtml(mm[1]).replace(/(\d),(\d)/g,'$1\u0000$2').split(',').forEach(function(k){
+        k=k.replace(/\u0000/g,',').trim().replace(/\.$/,''); if(k) kw.push(k); });
+      days.push({n:dayNum(d.date), kw:kw});
+    });
+  });});
+  if(!days.length) return null;
+  days.sort(function(a,b){return a.n-b.n;});
+  var t=new Date(), today=Math.round(Date.UTC(t.getFullYear(),t.getMonth(),t.getDate())/864e5);
+  var start=days[0].n, end=Math.max(today,days[days.length-1].n);
+  return {start:start, end:end, span:Math.max(1,end-start), days:days, from:start, to:end};
+}
+function posCss(n){                       /* nap → függőleges pozíció a sín mentén */
+  var p=(n-TL.start)/TL.span;
+  return 'calc('+PAD+'px + '+(p*100)+'% - '+(p*2*PAD)+'px)';
+}
+function buildMarks(){
+  var h='', lastTickN=-1e9;
+  function tick(n,txt,edge){ h+='<div class="tl-tick'+(edge?' edge':'')+'" style="top:'+posCss(n)+'">'+txt+'</div>'; }
+  tick(TL.start, HU_MON[numDate(TL.start).getUTCMonth()]+' '+numDate(TL.start).getUTCDate()+'.', true);
+  var d=numDate(TL.start); d=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1));
+  var minGap=TL.span*0.07;               /* ne zsúfolódjanak a címkék */
+  lastTickN=TL.start;
+  while(true){
+    var n=Math.round(d.getTime()/864e5); if(n>=TL.end) break;
+    if(n-lastTickN>=minGap && TL.end-n>=minGap){
+      tick(n,(d.getUTCMonth()===0?d.getUTCFullYear()+' ':'')+HU_MON[d.getUTCMonth()]); lastTickN=n;
+    }
+    d=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1));
+  }
+  tick(TL.end,'ma',true);
+  TL.days.forEach(function(x){ h+='<div class="tl-dot" data-n="'+x.n+'" style="top:'+posCss(x.n)+'"></div>'; });
+  document.getElementById('tl-marks').innerHTML=h;
+}
+function paintTimeline(){
+  var r=document.getElementById('tl-range'), p1=(TL.from-TL.start)/TL.span, p2=(TL.to-TL.start)/TL.span;
+  r.style.top=posCss(TL.from);
+  r.style.height='calc('+((p2-p1)*100)+'% - '+((p2-p1)*2*PAD)+'px)';
+  [['tl-from',TL.from],['tl-to',TL.to]].forEach(function(x){
+    var b=document.getElementById(x[0]);
+    b.style.top=posCss(x[1]);
+    b.querySelector('.lbl').textContent=(x[1]===TL.end && x[0]==='tl-to')?'ma':fmtShort(x[1]);
+    b.setAttribute('aria-valuemin',fmtLong(TL.start)); b.setAttribute('aria-valuemax',fmtLong(TL.end));
+    b.setAttribute('aria-valuenow',x[1]-TL.start); b.setAttribute('aria-valuetext',fmtLong(x[1]));
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#tl-marks .tl-dot'),function(dt){
+    var n=+dt.getAttribute('data-n'); dt.classList.toggle('in',n>=TL.from&&n<=TL.to);
+  });
+}
+function hashStr(x){ var h=2166136261; for(var i=0;i<x.length;i++){ h^=x.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+var CLOUD_COLORS=['#1F4E79','#2E5496','#2E7D32','#B8860B','#7b3fa0','#0f7c8c','#B22222'];
+function renderCloud(){
+  var cnt={}, forms={}, newsDays=0, mentions=0;
+  TL.days.forEach(function(d){
+    if(d.n<TL.from||d.n>TL.to) return;
+    if(d.kw.length) newsDays++;
+    d.kw.forEach(function(k){ var l=k.toLowerCase(); cnt[l]=(cnt[l]||0)+1; mentions++;
+      var f=forms[l]=forms[l]||{}; f[k]=(f[k]||0)+1; });
+  });
+  var words=Object.keys(cnt).map(function(l){
+    var f=forms[l], best=Object.keys(f).sort(function(a,b){return f[b]-f[a];})[0];  /* a leggyakoribb írásmód */
+    return {l:l, t:best, c:cnt[l]};
+  }).sort(function(a,b){ return b.c-a.c || a.t.localeCompare(b.t,'hu'); }).slice(0,90);
+
+  document.getElementById('cloud-range').textContent=fmtLong(TL.from)+' – '+fmtLong(TL.to)+
+    (TL.to===TL.end?' (ma)':'')+' · '+newsDays+' hírnap · '+mentions+' említés · '+Object.keys(cnt).length+' kulcsszó';
+  var box=document.getElementById('cloud');
+  if(!words.length){ box.innerHTML='<div class="empty">Ebben az időszakban nincs kulcsszavas hír.</div>'; return; }
+  var max=words[0].c, min=words[words.length-1].c, narrow=box.clientWidth<520;
+  var lo=narrow?12:13, hi=narrow?30:46, lmax=Math.log(max), lmin=Math.log(min);
+  /* stabil keverés (hash szerint): a nagy szavak szétszóródnak, és csúsztatáskor nem ugrálnak */
+  words.sort(function(a,b){ return hashStr(a.l)-hashStr(b.l); });
+  box.innerHTML=words.map(function(w){
+    var k=lmax===lmin?1:(Math.log(w.c)-lmin)/(lmax-lmin);
+    var size=Math.round(lo+(hi-lo)*k), col=CLOUD_COLORS[hashStr(w.l)%CLOUD_COLORS.length];
+    var t=w.t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    return '<span class="w" role="listitem" style="font-size:'+size+'px;color:'+col+';opacity:'+(0.6+0.4*k).toFixed(2)+'"'+
+           ' title="'+t+' — '+w.c+' említés">'+t+'</span>';
+  }).join('');
+}
+var cloudRaf=0;
+function scheduleCloud(){ paintTimeline(); if(cloudRaf) return; cloudRaf=requestAnimationFrame(function(){ cloudRaf=0; renderCloud(); }); }
+function initCloud(){
+  if(TL) { renderCloud(); return; }
+  var data=cloudData();
+  if(!data){ document.getElementById('cloud-range').textContent='Betöltés…'; setTimeout(initCloud,300); return; }
+  TL=data; buildMarks(); paintTimeline(); renderCloud(); wireTimeline();
+}
+function wireTimeline(){
+  var track=document.getElementById('tl-track'), hf=document.getElementById('tl-from'), ht=document.getElementById('tl-to');
+  function nAt(clientY){
+    var r=track.getBoundingClientRect(), p=(clientY-r.top-PAD)/Math.max(1,r.height-2*PAD);
+    return TL.start+Math.round(Math.min(1,Math.max(0,p))*TL.span);
+  }
+  function setH(which,n){
+    if(which==='from') TL.from=Math.min(Math.max(TL.start,n),TL.to);
+    else               TL.to  =Math.max(Math.min(TL.end,n),TL.from);
+    scheduleCloud();
+  }
+  var drag=null;
+  [[hf,'from'],[ht,'to']].forEach(function(x){
+    x[0].addEventListener('pointerdown',function(e){ drag=x[1]; x[0].setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation(); });
+    x[0].addEventListener('pointermove',function(e){ if(drag===x[1]) setH(drag,nAt(e.clientY)); });
+    x[0].addEventListener('pointerup',function(){ drag=null; });
+    x[0].addEventListener('pointercancel',function(){ drag=null; });
+    x[0].addEventListener('keydown',function(e){   /* fel = korábbi, le = későbbi */
+      var cur=x[1]==='from'?TL.from:TL.to, step={ArrowUp:-1,ArrowLeft:-1,ArrowDown:1,ArrowRight:1,PageUp:-7,PageDown:7}[e.key];
+      if(step) setH(x[1],cur+step);
+      else if(e.key==='Home') setH(x[1],TL.start);
+      else if(e.key==='End')  setH(x[1],TL.end);
+      else return;
+      e.preventDefault();
+    });
+  });
+  /* a sínre kattintva a közelebbi fogantyú ugrik oda */
+  track.addEventListener('pointerdown',function(e){
+    if(e.target.closest&&e.target.closest('.tl-h')) return;
+    var n=nAt(e.clientY);
+    setH(Math.abs(n-TL.from)<=Math.abs(n-TL.to)?'from':'to',n);
+  });
+}
 
 /* --- indulás --------------------------------------------------------------- */
 paintState();

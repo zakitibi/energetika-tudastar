@@ -120,6 +120,11 @@ nézet oldalsávját és fordítva, (5) a Naptár nyit-zár a Hírek nézetben (
 
 ## 6. Nyitott pontok / ötletek
 
+- **Szófelhő:** egy szóra kattintva még nem történik semmi. Kézenfekvő folytatás: a Hírek
+  nézetbe ugrás az adott kulcsszóra szűrve. A kulcsszavak írásmódja nem egységes
+  (`Paks` / `Paksi Atomerőmű` / `Paks II`, `MVM` / `MVM Group`) — ezeket a felhő külön
+  szónak veszi; egy kis szinonima-térkép összevonhatná őket.
+
 - **iOS Safari nincs letesztelve.** A minta több döntése (overlay `<dialog>` helyett,
   `pageLock`) kifejezetten iOS miatt van, de headless Chromiumban ez nem jön ki.
   Ha valaki iPhone-on nézi, erre figyeljen.
