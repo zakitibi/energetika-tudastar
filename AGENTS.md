@@ -204,6 +204,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-21: 17–21. lecke (hálózatok, energiaszámla, hőenergia, üzemanyagpiac, prosumerek) — `Energetika_Tananyag.html` + `rebuild_tananyag_html.py`.
 - 2026-10-21: Szófelhő: szóra kattintva szűrt Hírek (időszakra, hónapokon át); kulcsszó-összevonás (`KW_ALIAS`) egy helyen.
 - 2026-10-21: Új **Szófelhő** nézet a fiókban: a Hírek kulcsszavaiból, bal oldali függőleges tól–ig idővonallal (első hírnap → ma).
 - 2026-10-21: Napi tartalomjegyzék a Hírekben (soronként egy cím, kattintásra odagörget).

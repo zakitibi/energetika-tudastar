@@ -29,5 +29,14 @@ Projekt: Energy Sector Mentor - Magyar energiapiac szakterület
 - `/summary/kikerdezo_lecke_01..09.html` — leckénkénti interaktív kikérdező (kvíz + villámkártyák). Kumulatív: minden lecke kvíze tartalmaz ismétlő kérdést a korábbiakból, a kártyák kumulatívak. Generátor: outputs/quizgen.js + quizdata.js. Készült: 2026-06-20.
   - Alapozó sorozat (1-9. lecke) KÉSZ + kikérdezők mind. Sablon: outputs/helpers.js (docx), quizgen.js (kvíz). Lehetséges folytatás: elmélyülő modulok vagy átfogó vizsgakikérdező.
 
+- **10–16. lecke** (2026-07): Nukleáris/Paks · Nap és szél · Rendszerirányítás és kiegyenlítő piacok · Kereskedelem, PPA · Energiabiztonság · Energiahatékonyság · Hidrogén/P2X. Forrásuk az `Energetika_Tananyag.html` (a SPA-ba a `vps/rebuild_tananyag_html.py` építi be).
+- **17–21. lecke** (2026-10-21, elmélyülő modul, mind az `Energetika_Tananyag.html`-ben, 9 kérdés + 6 kártya/lecke):
+  - 17. Villamos hálózatok: átvitel (750/400/220 kV, MAVIR), 6 elosztó, HMKE ≤50 kVA, 2022-es visszatáplálási tilalom, +2540 körzet (MEKH 2025.04), EU 584 Mrd EUR hálózati igény 2030-ig, okosmérő ~10% (2024).
+  - 18. Az energiaszámla: MVM Next egyetemes szolgáltató, rendszerhasználati díjak (MEKH), áfa 27%, rezsicsökkentés 2523 kWh / 1729 m³, ~36 vs 70,104 Ft/kWh, 2026-ra változatlan, Rezsivédelmi Alap ~800 Mrd Ft.
+  - 19. Hőenergia: fűtés-hűtés ~50% (EU), megújuló 26,2% (EU 2023) vs 18,1% (HU 2019), távhő 648 712 lakás (~15–16%), Szeged geotermia 27 251 lakás, biometán-cél 184 M m³ (2030).
+  - 20. Üzemanyagpiac: Dunai Finomító ~8,1 Mt/év (2024: 7,1 Mt), AV3-tűz 2025.10, benzin 594,2 Ft/l (2026.07.20) ebből 46,1% adó, 480 Ft-os árstop 2021–22 tanulsága, védett ár 2026.03-tól.
+  - 21. Prosumerek: >300 ezer háztartási naperőmű, >8 GW napelem, szaldó → bruttó (2024.01.01), Napenergia Plusz 66%, energiaközösség- és aggregátor-szabályozás (VET, 2026-os módosítás).
+  - Nyitott/ellenőrizendő: a jövedéki adó 2026-os csökkentett mértékének érvényessége (forrásellentmondás); Szeged gázmegtakarítása (17 vs 27 M m³); HU fűtés-hűtés megújuló-aránya 2023-ra (csak 2019-es adat volt).
+
 ---
 *Add memory file references here as they are created*
