@@ -123,10 +123,10 @@ nézet oldalsávját és fordítva, (5) a Naptár nyit-zár a Hírek nézetben (
 - **iOS Safari nincs letesztelve.** A minta több döntése (overlay `<dialog>` helyett,
   `pageLock`) kifejezetten iOS miatt van, de headless Chromiumban ez nem jön ki.
   Ha valaki iPhone-on nézi, erre figyeljen.
-- **Mobilon két út vezet a leckékhez**: a fejléc legördülője és a nézet saját „☰ Leckék"
-  gombja. Utóbbi azért maradt, mert az oldalsávban ott vannak a haladás-százalékok
-  (badge-ek), amik a legördülőben nincsenek. Vagy a badge-eket kell átemelni a
-  legördülőbe, vagy a „☰ Leckék" gombot elrejteni — egy sor CSS mindkettő.
+- **A Tananyag-nézet saját „☰ Leckék" gombja el van rejtve** (2026-10-21, kérésre), így
+  mobilon a fejléc legördülője az egyetlen leckeválasztó. Ezzel a **haladás-százalékok
+  (badge-ek) mobilon nem látszanak** — ha kellenek, a legördülő `lessons()` függvénye
+  átemelheti a `.navbadge` szövegét és színét.
 - **A Kvíz fül nem kapott leckeválasztót** (kumulatív kikérdező, saját logikával).
 - **A `sw.js` cache-neve `energetika-v1`.** Ha a cache szerkezete változik, emelni kell,
   különben a régi bejegyzések félreértelmeződnek.

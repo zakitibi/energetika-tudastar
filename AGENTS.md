@@ -92,9 +92,10 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   oszlopát nyitja/zárja a srcdoc iframe-ben (azonos eredetű, közvetlenül elérhető). A nézet
   saját `#navtoggle` sávja ezért `display:none` a news srcdoc CSS-ében. 900 px fölött a
   menüpont rejtve van, mert ott a navigátor állandóan látszik.
-- A Tananyag-iframe saját ☰ gombja az `embed-override` CSS-ben kapja a „Leckék” címkét,
-  hogy ne tűnjön a shell menügombja másolatának. Az `embed-override` blokkot a
-  `rebuild_tananyag_html.py` a *jelenlegi* `view-tan`-ból emeli át, tehát ott kell szerkeszteni.
+- A Tananyag-iframe saját ☰ („Leckék”) gombja **el van rejtve** az `embed-override` CSS-ben
+  (`.top .burger{display:none!important}`) — a leckéket a fejléc leckeválasztója kezeli.
+  Az `embed-override` blokkot a `rebuild_tananyag_html.py` a *jelenlegi* `view-tan`-ból
+  emeli át, tehát ott kell szerkeszteni, és a rebuild megőrzi.
 - **Nem vettük át** az eredeti mintából az „egy gombos frissítés” (deploy) részt: az csak ott
   értelmes, ahol a felülethez való hozzáférés önmagában deploy-jogosultság. Ez a lap publikus.
 
@@ -161,6 +162,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-21: A Tananyag-nézet saját ☰ Leckék gombja elrejtve (a fejléc leckeválasztója váltja ki).
 - 2026-10-21: Leckeválasztó a fejlécben (az aktuális lecke alcímként, belőle legördülő
   leckelista); a Naptár menüpont 📅 ikont kapott.
 - 2026-10-21: A fiók emoji ikonokat kapott, az ⓘ a fejléc jobb szélére került, a ↻ csak a

@@ -284,10 +284,8 @@ button{font-family:inherit}
      background:transparent!important;box-shadow:none!important;z-index:40;gap:0!important;
      pointer-events:none!important}
 .top h1,.top .sub,.top .spacer{display:none!important}
-.top .burger{pointer-events:auto!important;background:var(--blue)!important;
-     box-shadow:0 2px 8px rgba(0,0,0,.25)!important;border-radius:18px!important;padding:4px 13px!important}
-/* a shell fejlécében is van egy ☰ (nézetváltó fiók) — ez itt a leckelista, mondja is meg */
-.top .burger::after{content:&#x27; Leckék&#x27;;font-size:12.5px;font-weight:600;letter-spacing:.2px}
+/* a leckéket a shell fejlécének leckeválasztója kezeli — a nézet saját ☰ gombja itt nem kell */
+.top .burger{display:none!important}
 .side{top:0!important;height:100vh!important}
 @media(max-width:760px){.side{top:0!important}}
 .quizwrap{top:12px!important}
