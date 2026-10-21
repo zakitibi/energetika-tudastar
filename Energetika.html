@@ -27,6 +27,33 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
 .iconbtn:hover{background:rgba(255,255,255,.28)}
 .iconbtn:disabled{opacity:.5;cursor:default}
 .iconbtn svg{display:block}
+/* --- fejléc-alcím: az aktuális lecke, egyben leckeválasztó --- */
+.subpick{display:none;align-items:center;gap:8px;max-width:46vw;min-width:0;
+     background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);color:#fff;
+     font:inherit;font-size:13px;font-weight:600;padding:6px 11px;border-radius:18px;
+     cursor:pointer;transition:background .15s}
+body.tanview .subpick{display:inline-flex}      /* csak a Tananyag nézetben van értelme */
+body.tanview .brand .sub{display:none}          /* az alcím helyét a lecke veszi át */
+.subpick:hover{background:rgba(255,255,255,.26)}
+.subpick .sp-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subpick svg{flex:none;transition:transform .15s}
+.subpick[aria-expanded="true"] svg{transform:rotate(180deg)}
+/* a legördülő szélesebb lehet, mint a bal oldali fiók */
+.pickscrim{position:fixed;inset:0;z-index:54}
+.pickmenu{position:fixed;z-index:55;overflow:auto;padding:8px;background:#fff;color:#1c2230;
+     border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.28);
+     display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:2px;align-content:start}
+.pickitem{display:flex;align-items:center;gap:10px;min-width:0;text-align:left;border:none;
+     background:transparent;font:inherit;color:inherit;padding:9px 10px;border-radius:10px;cursor:pointer}
+.pickitem:hover{background:#f0f4fb}
+.pickitem.current{background:var(--blue);color:#fff}
+.pnum{flex:none;width:26px;height:26px;border-radius:50%;background:#d9e2f3;color:var(--blue);
+     display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700}
+.pickitem.current .pnum{background:#fff}
+.ptxt{display:flex;flex-direction:column;min-width:0}
+.ptitle{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pmeta{font-size:11px;color:#5b6472}
+.pickitem.current .pmeta{color:#dbe6f6}
 /* --- bal oldali fiók (drawer) --- */
 .drawer{position:fixed;top:0;left:0;bottom:0;width:276px;max-width:84vw;z-index:60;
      background:#fff;color:#1c2230;display:flex;flex-direction:column;
@@ -69,7 +96,11 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
 #info-panel .btn{background:var(--blue);color:#fff;border:none;border-radius:9px;
      padding:9px 16px;font:inherit;font-weight:600;cursor:pointer}
 [hidden]{display:none!important}
-@media(max-width:760px){.tabs{display:none}}
+@media(max-width:760px){
+  .tabs{display:none}
+  /* a lecke-alcím saját sorba kerül — ott tényleg alcímként olvasható */
+  body.tanview .subpick{flex-basis:100%;max-width:100%;margin:0 0 6px;order:9}
+}
 /* a Hírek navigátora 900px fölött állandóan látszik, ott nincs mit nyitni */
 @media(min-width:901px){#dnav-cal{display:none}}
 @media(max-width:600px){
@@ -92,6 +123,15 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
     </svg>
   </button>
   <span class="brand">⚡ Energetika <span class="sub">tananyag · hírek · egységek · kvíz</span></span>
+  <!-- az aktuális lecke alcímként, egyben leckeválasztó (csak a Tananyag nézetben) -->
+  <button class="subpick" id="lessonpick" type="button" aria-haspopup="listbox"
+          aria-expanded="false" aria-controls="lessonmenu">
+    <span class="sp-txt" id="lessonpick-txt">Leckék</span>
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+         stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="6 9.5 12 15.5 18 9.5"/>
+    </svg>
+  </button>
   <span class="spacer"></span>
   <div class="tabs" id="tabs"></div>
   <button class="iconbtn" id="infobtn" type="button" aria-label="Mi ez az alkalmazás?" title="Mi ez az alkalmazás?">
@@ -122,6 +162,9 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
   </div>
 </nav>
 <div class="scrim" id="scrim" hidden></div>
+
+<div class="pickscrim" id="pickscrim" hidden></div>
+<div class="pickmenu" id="lessonmenu" role="listbox" aria-label="Leckék" hidden></div>
 
 <div id="info-overlay" hidden>
   <div id="info-panel" role="dialog" aria-modal="true" aria-label="Mi ez az alkalmazás?">
@@ -1547,7 +1590,7 @@ const MENU=[
   {id:'tan',   gl:'📚', label:'Tananyag',       tab:'📚 Tananyag', group:'tanulas',  src:'Energetika_Tananyag.html'},
   {id:'quiz',  gl:'🎯', label:'Kvíz',           tab:'🎯 Kvíz',     group:'tanulas',  src:'kvíz + villámkártyák'},
   {id:'news',  gl:'📰', label:'Hírek',          tab:'📰 Hírek',    group:'napi',     src:'news/*.md'},
-  {id:'cal',   gl:'☰',  label:'Naptár',         group:'napi',      act:'cal'},
+  {id:'cal',   gl:'📅', label:'Naptár',         group:'napi',      act:'cal'},
   {id:'units', gl:'📏', label:'Mértékegységek', tab:'📏 Mért.',    group:'segedlet', src:'beépített táblázat'}
 ];
 const VIEWS=MENU.filter(m=>!m.act).map(m=>m.id);
@@ -1611,11 +1654,14 @@ function showView(v){
     if(d){ d.classList.toggle('current',m.id===v);
            if(m.id===v) d.setAttribute('aria-current','page'); else d.removeAttribute('aria-current'); }
   });
+  document.body.classList.toggle('tanview',v==='tan');   /* a lecke-alcím csak ott kell */
+  if(v!=='tan' && typeof closePick==='function') closePick();
   try{localStorage.setItem('energetika_view',v);}catch(e){}
 }
 
 /* --- fiók ------------------------------------------------------------------ */
 function openDrawer(){
+  if(typeof closePick==='function') closePick();
   drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false');
   scrim.hidden=false; menubtn.setAttribute('aria-expanded','true'); pageLock.lock();
   var first=drawer.querySelector('.drawer-item'); if(first) first.focus();  /* nyitott menü = ott is a fókusz */
@@ -1663,7 +1709,7 @@ function renderInfo(){
   document.getElementById('info-close').addEventListener('click',closeInfo);
 }
 function openInfo(){
-  closeDrawer();                      /* két egymásra nyíló, lockolt overlay beragasztja a lapot */
+  closeDrawer(); if(typeof closePick==='function') closePick();                      /* két egymásra nyíló, lockolt overlay beragasztja a lapot */
   infoContent.innerHTML='<p>Betöltés…</p>';
   infoOverlay.hidden=false; pageLock.lock();
   requestAnimationFrame(renderInfo);  /* a keret azonnal, a tartalom utána */
@@ -1678,8 +1724,89 @@ infoOverlay.addEventListener('click',function(e){ if(e.target===infoOverlay) clo
 document.addEventListener('keydown',function(e){
   if(e.key!=='Escape') return;
   if(!infoOverlay.hidden){ closeInfo(); return; }
+  if(!pickMenu.hidden){ closePick(true); return; }
   closeDrawer();
 });
+
+/* --- leckeválasztó a fejlécben ---------------------------------------------
+   Az alcím az éppen nyitott leckét mutatja, és egyben legördíti a leckelistát.
+   A lista a Tananyag-iframe saját oldalsávjából épül (azonos eredetű), tehát
+   nincs belőle második, elavulni képes másolat; a választás a nézet saját
+   selectLesson() függvényét hívja.                                           */
+var pickBtn=document.getElementById('lessonpick'), pickTxt=document.getElementById('lessonpick-txt'),
+    pickMenu=document.getElementById('lessonmenu'), pickScrim=document.getElementById('pickscrim');
+
+function tanDoc(){
+  try{ var f=document.querySelector('#view-tan iframe');
+       return f&&(f.contentDocument||(f.contentWindow&&f.contentWindow.document)); }catch(e){ return null; }
+}
+function lessons(){
+  var d=tanDoc(); if(!d) return [];
+  return Array.prototype.map.call(d.querySelectorAll('.navitem'),function(b){
+    return { n:b.getAttribute('data-n'),
+             title:(b.querySelector('.navtitle')||{}).textContent||'',
+             meta:(b.querySelector('.navmeta')||{}).textContent||'',
+             active:b.classList.contains('active') };
+  });
+}
+function paintLessonLabel(){
+  var d=tanDoc(); if(!d) return;
+  var a=d.querySelector('.navitem.active'); if(!a) return;
+  pickTxt.textContent=a.getAttribute('data-n')+'. lecke · '+
+    ((a.querySelector('.navtitle')||{}).textContent||'');
+}
+function placePick(){
+  var r=pickBtn.getBoundingClientRect();
+  var w=Math.min(720,window.innerWidth-16);                 /* szélesebb lehet, mint a fiók */
+  pickMenu.style.width=w+'px';
+  pickMenu.style.left=Math.min(Math.max(8,r.left),window.innerWidth-w-8)+'px';
+  pickMenu.style.top=(r.bottom+8)+'px';
+  pickMenu.style.maxHeight=Math.max(160,window.innerHeight-r.bottom-24)+'px';
+}
+function openPick(){
+  var items=lessons(); if(!items.length) return;
+  pickMenu.innerHTML=items.map(function(l){
+    return '<button class="pickitem'+(l.active?' current':'')+'" type="button" role="option"'+
+           ' aria-selected="'+(l.active?'true':'false')+'" data-n="'+l.n+'">'+
+           '<span class="pnum">'+l.n+'</span><span class="ptxt">'+
+           '<span class="ptitle">'+l.title+'</span><span class="pmeta">'+l.meta+'</span></span></button>';
+  }).join('');
+  pickMenu.hidden=false; pickScrim.hidden=false;
+  pickBtn.setAttribute('aria-expanded','true');
+  placePick();
+  var cur=pickMenu.querySelector('.pickitem.current')||pickMenu.querySelector('.pickitem');
+  if(cur){ cur.focus(); cur.scrollIntoView({block:'nearest'}); }
+}
+function closePick(focusBack){
+  if(pickMenu.hidden) return;
+  pickMenu.hidden=true; pickScrim.hidden=true;
+  pickBtn.setAttribute('aria-expanded','false');
+  if(focusBack) pickBtn.focus();
+}
+function pickLesson(n){
+  var ok=false;
+  try{
+    var w=document.querySelector('#view-tan iframe').contentWindow;
+    if(w&&typeof w.selectLesson==='function'){ w.selectLesson(+n); ok=true; }
+  }catch(e){}
+  if(!ok){ var d=tanDoc(), b=d&&d.querySelector('.navitem[data-n="'+n+'"]'); if(b) b.click(); }
+  closePick(true); paintLessonLabel();
+}
+pickBtn.addEventListener('click',function(){ pickMenu.hidden?openPick():closePick(true); });
+pickScrim.addEventListener('click',function(){ closePick(); });
+pickMenu.addEventListener('click',function(e){
+  var it=e.target.closest&&e.target.closest('.pickitem'); if(it) pickLesson(it.getAttribute('data-n'));
+});
+window.addEventListener('resize',function(){ if(!pickMenu.hidden) placePick(); });
+
+/* az alcím akkor is kövesse a leckét, ha a nézet saját oldalsávjából választanak */
+(function watchLesson(){
+  var d=tanDoc(), side=d&&d.getElementById('side');
+  if(!side){ setTimeout(watchLesson,300); return; }
+  new MutationObserver(paintLessonLabel)
+    .observe(side,{subtree:true,attributes:true,attributeFilter:['class']});
+  paintLessonLabel();
+})();
 
 /* --- Naptár: a Hírek fül navigátora a fiókból vezérelve ---------------------
    A srcdoc iframe azonos eredetű, így közvetlenül elérjük. A nézet saját

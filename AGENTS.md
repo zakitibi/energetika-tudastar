@@ -78,6 +78,13 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   **Új deploy után a felhasználó legfeljebb egy betöltésnyit késik** (a háttér-revalidáció
   miatt), vagy azonnal frissíthet a ↻-val. Ha a cache szerkezete változik, emeld a `CACHE`
   nevet (`energetika-v1` → `-v2`).
+- **Leckeválasztó a fejlécben** (`#lessonpick` + `#lessonmenu`): a Tananyag nézetben a cím
+  mellett alcímként ott az aktuális lecke, és abból gördül le a teljes leckelista (720 px-ig
+  széles, több oszlopos — szándékosan szélesebb a fióknál). A lista a Tananyag-iframe saját
+  `.navitem` elemeiből épül **minden nyitáskor**, a választás a nézet `selectLesson(n)`
+  függvényét hívja — nincs belőle második, elavulni képes leckelista. Az alcímet egy
+  `MutationObserver` tartja szinkronban, ha a nézet saját oldalsávjából választanak.
+  Más nézetben a `body.tanview` osztály hiányában nem látszik.
 - **A „Naptár” menüpont nem nézet, hanem művelet** (`MENU[].act`): a Hírek-nézet `.nav`
   oszlopát nyitja/zárja a srcdoc iframe-ben (azonos eredetű, közvetlenül elérhető). A nézet
   saját `#navtoggle` sávja ezért `display:none` a news srcdoc CSS-ében. 900 px fölött a
@@ -139,6 +146,8 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-21: Leckeválasztó a fejlécben (az aktuális lecke alcímként, belőle legördülő
+  leckelista); a Naptár menüpont 📅 ikont kapott.
 - 2026-10-21: A fiók emoji ikonokat kapott, az ⓘ a fejléc jobb szélére került, a ↻ csak a
   fiók lábrészében maradt (valódi cache-ürítéssel); új `sw.js` (1 napos cache); a Hírek
   navigátora „Naptár” menüponttá vált a fiókban.
