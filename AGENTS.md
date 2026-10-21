@@ -51,12 +51,15 @@ Egy statikus web-app, amit a GitHub Pages szolgál ki, és amelynek tartalmát
 | `DEV_WORKFLOW.md` | A fejlesztési/üzemeltetési folyamat részletei |
 
 ## 3b. A SPA shell fejléce és a bal oldali fiók (drawer)
+> A döntések indoklása, a session alatt kiderült buktatók és a nyitott pontok:
+> **`notes/2026-10-21-fejlec-es-oldalmenu.md`**.
+
 Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<script>`.
 (A `rebuild_*` szkriptek csak a `view-*` iframe-ek `srcdoc`-ját írják, a shellt nem.)
 
 - **A navigáció EGY forrásból jön:** a záró script `MENU` tömbjéből épül a fejléc
   fülsora ÉS a fiók listája is. **Új nézet = egy `MENU`-sor + egy `<div class="view" id="view-<id>">`**
-  (+ egy ikon az `ICON` objektumba). Ne írj kézzel fület vagy menüpontot.
+  (a `gl` mezőben egy emoji ikon). Ne írj kézzel fület vagy menüpontot.
 - **Választóvonal** a fiókban ott kerül be, ahol a `MENU` elem `group` értéke
   megváltozik — nem csoportonként hardkódolva.
 - **Az aktuális nézet jelölve van, nem elrejtve** (`.drawer-item.current` + `aria-current`).
@@ -141,6 +144,18 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 - Az `Energetika.html` óriás generált fájl — a hír-adathoz CSAK a `rebuild_news_html.js`-en, a Tananyag/Kvíz-adathoz CSAK a `rebuild_tananyag_html.py`-n át nyúlj.
 - Lecke után **mindig** futtasd: `python3 vps/rebuild_tananyag_html.py` — különben a SPA Tananyag/Kvíz füle nem frissül (csak a standalone fájl).
 - A `CLAUDE.md`/`MEMORY.md` a repóban van (publikus repo, email kiszedve). Ne tegyél bele titkot/PII-t.
+- **Branch-ről nem lehet Pages-re deployolni.** A `workflow_dispatch` elindul, de a job logok
+  nélkül, 2 mp alatt elbukik: *„Branch … is not allowed to deploy to github-pages due to
+  environment protection rules."* A `github-pages` environment csak az alapértelmezett ágról
+  enged. Élő teszt tehát = merge a `main`-be (vagy a tulajdonos felveszi a `claude/*` szabályt
+  a Settings → Environments alatt).
+- **Felhős sessionben a klón elavult lehet** (ez 2026-10-20-án egy hónapnyi hírt forgatott
+  volna vissza). Munka előtt mindig `git fetch origin main`, és arra építs.
+- **Shell-módosítás után futtasd le mindkét generátort**, és a fájlnak bájtra változatlannak
+  kell maradnia — ez fogja meg, ha egy horgony (`id="view-tan"><iframe title=…`) elromlott.
+- **A service worker miatt a felhasználó legfeljebb egy betöltésnyit késik** egy új deploy
+  után (vagy azonnal frissít a fiók ↻ gombjával). Ha „nem frissült" bejelentés jön, először
+  ezt kérdezd vissza, ne a deployt hibáztasd.
 
 ## 9. Karbantartás — MINDIG frissítsd ezt a fájlt, ha változik:
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
