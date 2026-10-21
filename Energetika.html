@@ -120,7 +120,9 @@ body.tanview .brand .sub{display:none}          /* az alcím helyét a lecke ves
 .cloud-range{margin:4px 0 12px;font-size:12.5px;color:#5b6472}
 .cloud{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 14px;min-height:220px;
      background:#fff;border:1px solid #e2e7f1;border-radius:14px;padding:22px 18px;line-height:1.15}
-.cloud .w{display:inline-block;font-weight:700;letter-spacing:-.2px;transition:font-size .2s ease,opacity .2s}
+.cloud .w{display:inline-block;font-family:inherit;font-weight:700;letter-spacing:-.2px;line-height:1.15;
+     background:none;border:0;padding:0;cursor:pointer;transition:font-size .2s ease,opacity .2s}
+.cloud .w:hover,.cloud .w:focus-visible{opacity:1!important;text-decoration:underline;text-underline-offset:3px}
 .cloud .empty{color:#5b6472;font-size:14px}
 @media(max-width:600px){
   .cloud-main{padding:12px 12px 30px}
@@ -983,6 +985,12 @@ body{font-family:&#x27;Segoe UI&#x27;,system-ui,Arial,sans-serif;background:var(
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;word-break:normal}
 .daytoc li+li a{border-top:1px dashed var(--line)}
 .daytoc a:hover{text-decoration:underline}
+/* kulcsszó-szűrés (a shell Szófelhője hívja: filterKw) */
+.kwbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 14px;font-size:12.5px;color:var(--grey)}
+.kwbar button{border:1px solid var(--line);background:#fff;color:var(--blue2);font:inherit;font-weight:600;
+  padding:5px 11px;border-radius:16px;cursor:pointer}
+.kwbar button:hover{border-color:var(--blue2)}
+.day mark{background:#fff1b8;color:inherit;padding:0 3px;border-radius:4px;font-weight:700}
 .day ul{margin:6px 0 14px;padding-left:20px}
 .day li{margin:4px 0}
 .day a{color:var(--blue2);word-break:break-word}
@@ -1092,7 +1100,7 @@ function styleStatus(root){
     for(const k in STATUS){ if(t.startsWith(k)){e.style.color=STATUS[k];e.style.fontWeight=&#x27;700&#x27;;break;} }
   });
 }
-function renderNews(){
+function renderNews(){ kwActive=false;
   const o=NEWS[curYear][curMonth];
   let h=`&lt;div class=&quot;mtitle&quot;&gt;${o.title||(curYear+&#x27;. &#x27;+HU_MON[+curMonth])}&lt;/div&gt;`;
   if(o.intro) h+=`&lt;div class=&quot;mintro&quot;&gt;${o.intro}&lt;/div&gt;`;
@@ -1137,11 +1145,11 @@ function updateSpy(){
   for(const s of secs){ if(s.getBoundingClientRect().top-top&lt;=90) act=s.dataset.date; }
   setActive(act);
 }
-function jumpDay(date){
+function jumpDay(date){ if(kwActive) renderNews();
   const el=document.getElementById(&#x27;day-&#x27;+date);
   if(el){ el.scrollIntoView({block:&#x27;start&#x27;,behavior:&#x27;smooth&#x27;}); setActive(date); }
 }
-function jumpKw(kw){
+function jumpKw(kw){ if(kwActive) renderNews();
   const o=NEWS[curYear][curMonth];
   const hit=o.days.find(d=&gt;d.text.includes(kw.toLowerCase()));
   if(hit){ const el=document.getElementById(&#x27;day-&#x27;+hit.date);
@@ -1168,6 +1176,74 @@ function tocGo(id){
   setTimeout(fix,1500);
   return false;
 }
+
+
+/* --- kulcsszó-szűrés ---------------------------------------------------------
+   A shell Szófelhő nézete hívja: filterKw(szó, tól, ig) — ISO dátumokkal.
+   Hónapokon átívelően gyűjti azokat a híreket (### blokkokat), amelyek
+   „Kulcsszavak:” sorában PONTOSAN ez a szó szerepel (kis-nagybetű mindegy),
+   napok szerint, legfrissebb felül. A felbontás ugyanaz, mint a shellben
+   (a tizedesvessző nem elválasztó), így a darabszám egyezik a felhőével. */
+var kwActive=false;
+function kwSplit(x){ return x.replace(/(\d),(\d)/g,&#x27;$1\u0000$2&#x27;).split(&#x27;,&#x27;)
+  .map(function(k){ return k.replace(/\u0000/g,&#x27;,&#x27;).trim().replace(/\.$/,&#x27;&#x27;); }).filter(Boolean); }
+/* Kulcsszó-összevonás — EGY helyen; a shell Szófelhője is ezt hívja (kwId/kwCanon).
+   Csak ugyanannak a dolognak más írásmódjait vonjuk össze, külön dolgokat nem:
+   a „Paks II” (új blokkok projektje) NEM azonos a Paksi Atomerőművel, az „MVM Next”
+   és az „MVM Démász” külön cégek. Bővíteni: kulcs = kwKey() alak, érték = megjelenő név. */
+var KW_ALIAS={
+  &#x27;paks&#x27;:&#x27;Paksi Atomerőmű&#x27;,
+  &#x27;paksi atomerőmű&#x27;:&#x27;Paksi Atomerőmű&#x27;,
+  &#x27;hormuz&#x27;:&#x27;Hormuzi-szoros&#x27;,
+  &#x27;hormuzi szoros&#x27;:&#x27;Hormuzi-szoros&#x27;,
+  &#x27;mvm csoport&#x27;:&#x27;MVM&#x27;,
+  &#x27;gáztárolók&#x27;:&#x27;gáztároló&#x27;,
+  &#x27;magyar péter kormány&#x27;:&#x27;Tisza-kormány&#x27;,
+  &#x27;tisza kormány&#x27;:&#x27;Tisza-kormány&#x27;
+};
+function kwKey(k){ return String(k).toLowerCase().replace(/[-‐‑‒–—]/g,&#x27; &#x27;).replace(/\s+/g,&#x27; &#x27;).trim(); } /* kis-nagybetű és kötőjel mindegy */
+function kwCanon(k){ return KW_ALIAS[kwKey(k)]||k; }       /* megjelenő alak */
+function kwId(k){ return kwKey(kwCanon(k)); }              /* összevetési kulcs */
+function kwDecode(x){ var t=document.createElement(&#x27;textarea&#x27;); t.innerHTML=x; return t.value; }
+function kwEsc(x){ return String(x).replace(/&amp;/g,&#x27;&amp;amp;&#x27;).replace(/&lt;/g,&#x27;&amp;lt;&#x27;).replace(/&gt;/g,&#x27;&amp;gt;&#x27;).replace(/&quot;/g,&#x27;&amp;quot;&#x27;); }
+function itemKws(h){ var m=/&lt;strong&gt;Kulcsszavak:&lt;\/strong&gt;\s*([^&lt;]*)/.exec(h);
+  return m?kwSplit(kwDecode(m[1])).map(kwId):[]; }
+function fmtD(iso){ return iso?iso.replace(/^(\d{4})-(\d{2})-(\d{2})$/,&#x27;$1. $2. $3.&#x27;):&#x27;&#x27;; }
+function filterKw(kw,from,to){
+  var k=kwId(kw), days=[];
+  Object.keys(NEWS).forEach(function(y){ Object.keys(NEWS[y]).forEach(function(m){
+    (NEWS[y][m].days||[]).forEach(function(d){
+      if((from&amp;&amp;d.date&lt;from)||(to&amp;&amp;d.date&gt;to)) return;
+      var hits=d.html.split(/(?=&lt;h3[\s&gt;])/).filter(function(p){ return /^&lt;h3[\s&gt;]/.test(p); })
+        .map(function(p){ var e=p.indexOf(&#x27;&lt;/ul&gt;&#x27;); return e&gt;=0?p.slice(0,e+5):p; })   /* a nap végi megjegyzés ne tapadjon rá */
+        .filter(function(p){ return itemKws(p).indexOf(k)&gt;=0; });
+      if(hits.length) days.push({d:d,hits:hits});
+    });
+  });});
+  days.sort(function(a,b){ return a.d.date&lt;b.d.date?1:-1; });
+  var n=days.reduce(function(s,x){ return s+x.hits.length; },0);
+  var back=(window.parent&amp;&amp;window.parent!==window&amp;&amp;window.parent.showView)
+    ?&#x27;&lt;button type=&quot;button&quot; onclick=&quot;parent.showView(\&#x27;cloud\&#x27;)&quot;&gt;☁️ Vissza a szófelhőhöz&lt;/button&gt;&#x27;:&#x27;&#x27;;
+  var h=&#x27;&lt;div class=&quot;mtitle&quot;&gt;Szűrés: „&#x27;+kwEsc(kwCanon(kw))+&#x27;”&lt;/div&gt;&#x27;+
+    &#x27;&lt;div class=&quot;kwbar&quot;&gt;&lt;span&gt;&#x27;+fmtD(from)+&#x27; – &#x27;+fmtD(to)+&#x27; · &#x27;+n+&#x27; hír · &#x27;+days.length+&#x27; nap&lt;/span&gt;&#x27;+
+    &#x27;&lt;button type=&quot;button&quot; onclick=&quot;clearKw()&quot;&gt;✕ Szűrés törlése&lt;/button&gt;&#x27;+back+&#x27;&lt;/div&gt;&#x27;;
+  if(!n) h+=&#x27;&lt;p&gt;Ebben az időszakban nincs ilyen kulcsszavú hír.&lt;/p&gt;&#x27;;
+  days.forEach(function(x){
+    h+=&#x27;&lt;section class=&quot;day&quot; id=&quot;day-&#x27;+x.d.date+&#x27;&quot; data-date=&quot;&#x27;+x.d.date+&#x27;&quot;&gt;&lt;div class=&quot;daytitle&quot;&gt;&#x27;+x.d.header+&#x27;&lt;/div&gt;&#x27;+x.hits.join(&#x27;\n&#x27;)+&#x27;&lt;/section&gt;&#x27;;
+  });
+  mid.innerHTML=h; styleStatus(mid);
+  mid.querySelectorAll(&#x27;li&#x27;).forEach(function(li){            /* a találat kiemelése */
+    var st=li.querySelector(&#x27;strong&#x27;); if(!st||st.textContent.trim()!==&#x27;Kulcsszavak:&#x27;) return;
+    var tx=li.textContent, toks=kwSplit(tx.slice(tx.indexOf(&#x27;:&#x27;)+1));
+    li.innerHTML=&#x27;&lt;strong&gt;Kulcsszavak:&lt;/strong&gt; &#x27;+toks.map(function(t){
+      return kwId(t)===k?&#x27;&lt;mark&gt;&#x27;+kwEsc(t)+&#x27;&lt;/mark&gt;&#x27;:kwEsc(t); }).join(&#x27;, &#x27;);
+  });
+  kwActive=true;
+  mid.scrollTop=0; try{ window.scrollTo(0,0); }catch(e){}
+  requestAnimationFrame(updateSpy);
+  return n;
+}
+function clearKw(){ kwActive=false; renderAll(); }
 
 /* a shell Szófelhő nézete innen olvassa a híreket (a const nem kerül a window-ra) */
 window.NEWS_DATA=NEWS;
@@ -1653,7 +1729,7 @@ updateInfo();
     <section class="cloud-main">
       <h2>☁️ Szófelhő</h2>
       <div class="cloud-range" id="cloud-range">Betöltés…</div>
-      <div class="cloud" id="cloud" role="list" aria-label="Kulcsszavak gyakoriság szerint"></div>
+      <div class="cloud" id="cloud" aria-label="Kulcsszavak gyakoriság szerint — kattints egy szóra a hírekért"></div>
     </section>
   </div>
 </div>
@@ -1966,15 +2042,17 @@ function decodeHtml(x){ var t=document.createElement('textarea'); t.innerHTML=x;
 function newsData(){
   try{ return document.querySelector('#view-news iframe').contentWindow.NEWS_DATA||null; }catch(e){ return null; }
 }
+function newsWin(){ try{ return document.querySelector('#view-news iframe').contentWindow; }catch(e){ return null; } }
 function cloudData(){
-  var N=newsData(); if(!N) return null;
+  var N=newsData(), W=newsWin();
+  if(!N||!W||typeof W.kwSplit!=='function'||typeof W.kwId!=='function') return null;
   var days=[], re=/<strong>Kulcsszavak:<\/strong>\s*([^<]*)/g;
   Object.keys(N).forEach(function(y){ Object.keys(N[y]).forEach(function(m){
     (N[y][m].days||[]).forEach(function(d){
       var kw=[], mm; re.lastIndex=0;
-      /* a tizedesvessző („64,2 millió euró”) nem elválasztó: előbb kivédjük */
-      while((mm=re.exec(d.html||''))) decodeHtml(mm[1]).replace(/(\d),(\d)/g,'$1\u0000$2').split(',').forEach(function(k){
-        k=k.replace(/\u0000/g,',').trim().replace(/\.$/,''); if(k) kw.push(k); });
+      /* felbontás + összevonás: a Hírek-nézet kwSplit/kwCanon/kwId-je — ugyanaz, amivel szűr */
+      while((mm=re.exec(d.html||''))) W.kwSplit(W.kwDecode(mm[1])).forEach(function(k){
+        kw.push({id:W.kwId(k), t:W.kwCanon(k)}); });
       days.push({n:dayNum(d.date), kw:kw});
     });
   });});
@@ -2028,8 +2106,8 @@ function renderCloud(){
   TL.days.forEach(function(d){
     if(d.n<TL.from||d.n>TL.to) return;
     if(d.kw.length) newsDays++;
-    d.kw.forEach(function(k){ var l=k.toLowerCase(); cnt[l]=(cnt[l]||0)+1; mentions++;
-      var f=forms[l]=forms[l]||{}; f[k]=(f[k]||0)+1; });
+    d.kw.forEach(function(k){ var l=k.id; cnt[l]=(cnt[l]||0)+1; mentions++;
+      var f=forms[l]=forms[l]||{}; f[k.t]=(f[k.t]||0)+1; });
   });
   var words=Object.keys(cnt).map(function(l){
     var f=forms[l], best=Object.keys(f).sort(function(a,b){return f[b]-f[a];})[0];  /* a leggyakoribb írásmód */
@@ -2048,8 +2126,9 @@ function renderCloud(){
     var k=lmax===lmin?1:(Math.log(w.c)-lmin)/(lmax-lmin);
     var size=Math.round(lo+(hi-lo)*k), col=CLOUD_COLORS[hashStr(w.l)%CLOUD_COLORS.length];
     var t=w.t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
-    return '<span class="w" role="listitem" style="font-size:'+size+'px;color:'+col+';opacity:'+(0.6+0.4*k).toFixed(2)+'"'+
-           ' title="'+t+' — '+w.c+' említés">'+t+'</span>';
+    var qa=t.replace(/"/g,'&quot;');
+    return '<button type="button" class="w" data-kw="'+qa+'" style="font-size:'+size+'px;color:'+col+';opacity:'+(0.6+0.4*k).toFixed(2)+'"'+
+           ' title="'+qa+' — '+w.c+' említés · kattints a hírekért">'+t+'</button>';
   }).join('');
 }
 var cloudRaf=0;
@@ -2060,6 +2139,17 @@ function initCloud(){
   if(!data){ document.getElementById('cloud-range').textContent='Betöltés…'; setTimeout(initCloud,300); return; }
   TL=data; buildMarks(); paintTimeline(); renderCloud(); wireTimeline();
 }
+function isoOf(n){ var d=numDate(n); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+function openKw(kw){
+  showView('news');
+  try{
+    var w=document.querySelector('#view-news iframe').contentWindow;
+    if(w&&typeof w.filterKw==='function') w.filterKw(kw,isoOf(TL.from),isoOf(TL.to));
+  }catch(e){}
+}
+document.getElementById('cloud').addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('.w'); if(b) openKw(b.getAttribute('data-kw'));
+});
 function wireTimeline(){
   var track=document.getElementById('tl-track'), hf=document.getElementById('tl-from'), ht=document.getElementById('tl-to');
   function nAt(clientY){

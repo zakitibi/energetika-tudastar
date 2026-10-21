@@ -92,7 +92,14 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   Adata a Hírek-nézetből jön: a view-news srcdoc scriptje a végén `window.NEWS_DATA=NEWS;`
   sorral kiteszi (a `const` nem kerül a window-ra), és a shell ebből, a napok `html`-jének
   `<strong>Kulcsszavak:</strong>` soraiból számol — **nincs második kulcsszó-másolat**.
-  A tizedesvessző („64,2 millió euró”) nem elválasztó: felbontás előtt kivédjük.
+  A felbontást és az összevonást a shell **a Hírek-nézet függvényeivel** végzi
+  (`kwSplit`, `kwDecode`, `kwId`, `kwCanon` — a srcdoc felső szintű függvényei a window-n
+  vannak), így a felhő és a szűrés nem tud eltérni. A tizedesvessző („64,2 millió euró”)
+  nem elválasztó.
+  **Szóra kattintva** a Hírek nézet szűrt módba vált: `filterKw(szó, tól, ig)` a kijelölt
+  időszak összes hírét mutatja, amelynek kulcsszavai között szerepel (hónapokon át, napok
+  szerint, legfrissebb felül, a találat `<mark>`-kal kiemelve), „✕ Szűrés törlése” és
+  „☁️ Vissza a szófelhőhöz” gombbal. A felhő száma == a szűrt hírek száma (tesztelve).
   Balra függőleges idővonal: **teteje az első hírnap, alja MINDIG a mai nap**; két
   fogantyú (egér/érintés húzás, sínre kattintás, billentyűk: ↑↓ ±1 nap, PgUp/PgDn ±7,
   Home/End) állítja a tól–ig időszakot. A pozíciók %-ban vannak, így átméretezésre nincs
@@ -125,6 +132,14 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 - **`window.NEWS_DATA=NEWS;`** a view-news srcdoc scriptjének végén: ebből olvas a shell
   Szófelhő nézete (ld. 3b.). A rebuild csak a `const NEWS = {…}` objektumot cseréli, ez a sor
   megmarad — ne töröld.
+- **Kulcsszó-összevonás: `KW_ALIAS`** a view-news srcdoc scriptjében — EGY helyen, a
+  Szófelhő és a szűrés is ezt használja. `kwKey()`: kisbetű, kötőjel/gondolatjel = szóköz;
+  `KW_ALIAS[kwKey(x)]` = megjelenő név. **Csak ugyanannak a dolognak más írásmódjait vond
+  össze**, külön dolgokat ne: a `Paks II` (új blokkok) ≠ `Paksi Atomerőmű`, az `MVM Next` és
+  az `MVM Démász` külön cégek. Jelenleg: Paks→Paksi Atomerőmű, Hormuz→Hormuzi-szoros,
+  MVM Csoport→MVM, gáztárolók→gáztároló, Magyar Péter kormány→Tisza-kormány.
+- **Szűrt mód (`filterKw`)**: a `renderNews()`/`jumpDay()`/`jumpKw()` eleje kilép belőle
+  (`kwActive`), így a hónap-/napválasztás és a kulcsszó-chipek szűrés közben is működnek.
 - **Napi tartalomjegyzék.** A generátor (`mdToHtml(body,'h'+date)` → `tocHtml()`) minden
   olyan nap elejére, ahol **legalább 2 hír** van, egy soronként egy címes listát tesz
   (`.daytoc`); a `### N. cím` fejlécek `id="h<dátum>-<n>"` azonosítót kapnak. A linkek
@@ -189,6 +204,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-21: Szófelhő: szóra kattintva szűrt Hírek (időszakra, hónapokon át); kulcsszó-összevonás (`KW_ALIAS`) egy helyen.
 - 2026-10-21: Új **Szófelhő** nézet a fiókban: a Hírek kulcsszavaiból, bal oldali függőleges tól–ig idővonallal (első hírnap → ma).
 - 2026-10-21: Napi tartalomjegyzék a Hírekben (soronként egy cím, kattintásra odagörget).
 - 2026-10-21: A Hírek linkjei teljes URL helyett forrás-logóként jelennek meg (tartalék: domain név).
