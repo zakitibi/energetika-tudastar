@@ -39,6 +39,7 @@ Egy statikus web-app, amit a GitHub Pages szolgál ki, és amelynek tartalmát
 | `sw.js` | Service worker: 1 napig érvényes gyorsítótár (ld. 3b.) |
 | `manifest.webmanifest` | PWA-manifest (név, `start_url`, `display: standalone`, ikonok) |
 | `icons/` | App-ikon: `icon.svg` a forrás (és a böngészőfül SVG-ikonja), `src/*.svg` a változatok, a PNG-k ezekből generálva |
+| `tools/map-layout.py` | A Piaci térkép elrendezés-optimalizálója (x-pozíciók + él-görbítések javaslata) |
 | `tools/render-icons.mjs` | A PNG-ikonok újragenerálása az SVG-kből (Playwright/Chromium): `node tools/render-icons.mjs` |
 | `Energetika.html` | **A fő app** — generált egyfájlos SPA, 4 fül (Tananyag/Hírek/Mértékegységek/Kvíz), mind escaped `srcdoc` iframe |
 | `Energetika_Tananyag.html` | **A leckék EGYETLEN forrása** (tartalom + sidebar + `const QUIZ`/`TITLES`); a SPA Tananyag+Kvíz füle ebből generálódik |
@@ -118,6 +119,20 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   **Mindig a fejléc sorában marad** (a cím és az ⓘ között, sosem kap új sort): `flex:1000 1 0`
   (nem tör, a spacer előtt kap helyet), `max-width:max-content`; 760 px alatt rövid felirat
   („okt. 21.”), 360 px alatt az emoji is elmarad. Ezért a fülsor 900 px alatt rejtett.
+- **Piaci térkép nézet** (`#view-map`, 🕸️, a Fogalomtár fölött): a magyar villamosenergia-piac
+  21 szereplője 6 sávban, 39 kapcsolattal, négy típusban — **szabályoz** (lila szaggatott),
+  **irányít** (kék), **fizet** (zöld, mindig azzal, hogy miért), **tulajdonos** (szürke pontozott).
+  **EGY adatforrás** a shell scriptjében: `MP_NODES` (`[név, alcím, sáv, x, y, leckék, leírás]`) és
+  `MP_EDGES` (`[honnan, hova, típus, felirat, görbítés px]`) — ebből rajzolódik az SVG ÉS a panel
+  szöveges kapcsolatlistája. Csúsztatás/nagyítás pointer-eseményekkel (egér, toll, érintés: húzás,
+  két ujjas csípés, görgő, dupla koppintás), gombok (+ − ⤢). Szereplőre koppintva kiemeli a kapcsolatait,
+  ráközelít a szereplőre és szomszédaira, és a panel kiírja, kit szabályoz, kinek fizet, miért
+  (lecke-hivatkozásokkal). Áttekintésben a feliratok rejtve; kijelöléskor (a kijelölt élein) vagy
+  `k ≥ 0,8` nagyításnál látszanak. **Új szereplő/kapcsolat után** futtasd a `tools/map-layout.py`-t,
+  és vezesd át a javasolt x-eket és görbítéseket (különben élek futhatnak át idegen dobozokon).
+  Ellenőrzött tartalmi pontok: a KÁT/METÁR költségét a MAVIR a nem egyetemes fogyasztókra terheli;
+  a rezsicsökkentett árat Korm. rendelet, az átlag feletti lakossági árat MEKH-rendelet adja; a
+  MAVIR az MVM Zrt. 100%-os leánya, független rendszerirányítóként (ITO).
 - **Fogalomtár nézet** (`#view-gloss`, 📖, a Mértékegységek fölött): **nem iframe, és nincs saját
   fogalomlistája** — a leckék villámkártyáiból épül. Az `Energetika_Tananyag.html` a `TITLES` után
   `window.QUIZ_DATA=QUIZ; window.TITLES_DATA=TITLES;` sorral kiteszi az adatot (a rebuild átviszi
@@ -146,7 +161,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   dobozba (`.srclogo.noimg`). Több link egy sorban: a ` · ` elválasztót a generátor kiszedi.
   A stílus (`.day a.srclogo…`) a `view-news` srcdoc CSS-ében van — a rebuild megőrzi.
   Tiszta `<a target="_blank" rel="noopener">`, popup-hack nélkül, így túléli a regenerálást.
-- **`window.NEWS_DATA=NEWS;`** a view-news srcdoc scriptjének végén: ebből olvas a shell
+- **`window.NEWS_DATA=NEWS;`** a view-news srcdoc scriptjében, **közvetlenül a `const NEWS` után** (nem a végén: így egy későbbi futási hiba sem blokkolja a Szófelhőt): ebből olvas a shell
   Szófelhő nézete (ld. 3b.). A rebuild csak a `const NEWS = {…}` objektumot cseréli, ez a sor
   megmarad — ne töröld.
 - **Kulcsszó-összevonás: `KW_ALIAS`** a view-news srcdoc scriptjében — EGY helyen, a
@@ -226,6 +241,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-25: Piaci térkép nézet (21 szereplő, 39 kapcsolat, csúsztatás/nagyítás); Szófelhő: korai adat-export + látható hibaállapot.
 - 2026-10-25: Fogalomtár nézet (97 fogalom a 21 lecke 103 villámkártyájából); a naptár a fejléc sorában.
 - 2026-10-25: Fejléc-naptár a Hírek nézetben; PWA-manifest + app-ikon (⚡ a fejléc kék színátmenetén) és böngészőfül-ikon; a mobil görgetésfigyelő javítva.
 - 2026-10-21: 17–21. lecke (hálózatok, energiaszámla, hőenergia, üzemanyagpiac, prosumerek) — `Energetika_Tananyag.html` + `rebuild_tananyag_html.py`.

@@ -192,6 +192,51 @@ body.tanview .brand .sub,body.newsview .brand .sub{display:none}      /* az alc�
 .gl-src:hover{background:#dde6f5}
 .gl-empty{padding:20px 0;color:#5b6472}
 @media(max-width:600px){ .gl-head{padding:12px 12px 8px} .gl-list{padding:6px 12px 40px} }
+/* --- Piaci térkép: csúsztatható, nagyítható SVG (nem iframe, a shell rajzolja) --- */
+#view-map{background:#f6f8fc}
+.mp-wrap{position:absolute;inset:0;display:flex}
+.mp-stage{position:relative;flex:1;min-width:0;overflow:hidden;touch-action:none;cursor:grab;
+     background-image:radial-gradient(#d9e0ec 1px,transparent 1px);background-size:22px 22px}
+.mp-stage:active{cursor:grabbing}
+.mp-stage svg{display:block;width:100%;height:100%;user-select:none;-webkit-user-select:none}
+.mp-tools{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.mp-tools button{width:38px;height:38px;border:1px solid #d5ddeb;border-radius:10px;background:#fff;color:var(--blue);
+     font:inherit;font-size:19px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.mp-legend{position:absolute;top:10px;left:10px;right:60px;display:flex;flex-wrap:wrap;gap:6px;z-index:2;pointer-events:none}
+.mp-legend button{pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid #d5ddeb;
+     border-radius:16px;background:#fff;font:inherit;font-size:12.5px;font-weight:600;color:#1c2230;cursor:pointer;
+     box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.mp-legend button[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+.mp-legend i{display:inline-block;width:18px;height:0;border-top:3px solid currentColor}
+.mp-info{flex:none;width:330px;overflow:auto;background:#fff;border-left:1px solid #e2e7f1;padding:16px 16px 30px;font-size:14px;line-height:1.5}
+.mp-info h3{margin:0;font-size:17px;color:var(--blue)}
+.mp-info .mp-sub{color:#5b6472;font-size:12.5px;margin:2px 0 8px}
+.mp-info h4{margin:14px 0 4px;font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:#5b6472}
+.mp-info ul{list-style:none;margin:0;padding:0}
+.mp-info li{padding:3px 0}
+.mp-info li button{border:0;background:none;padding:0;font:inherit;font-weight:700;color:var(--blue2);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.mp-info .mp-k{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:0}
+.mp-info .mp-hint{color:#5b6472}
+.mp-info .mp-close{float:right;border:0;background:#eef1f7;border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer;color:#1c2230}
+.mp-note{margin-top:14px;font-size:11.5px;color:#5b6472}
+#mp-svg .mp-node{cursor:pointer}
+#mp-svg .mp-node rect{transition:opacity .15s}
+#mp-svg .mp-edge{transition:opacity .15s}
+#mp-svg.sel .mp-edge:not(.on){opacity:.08}
+#mp-svg.sel .mp-elabel:not(.on){opacity:0}
+/* áttekintésben csak a vonalak; a feliratok kijelöléskor (a kijelölt szereplő élein) vagy közelítéskor jönnek elő */
+#mp-svg .mp-elabel{display:none}
+#mp-svg.zoomed .mp-elabel,#mp-svg.sel .mp-elabel.on{display:inline}
+#mp-svg.sel .mp-node:not(.on){opacity:.3}
+#mp-svg .mp-edge.on path{stroke-width:3.4}
+#mp-svg .mp-node.focus rect{stroke-width:3.5}
+#mp-svg.hide-reg .t-reg,#mp-svg.hide-ctl .t-ctl,#mp-svg.hide-pay .t-pay,#mp-svg.hide-own .t-own{display:none}
+@media(max-width:760px){
+  .mp-wrap{flex-direction:column}
+  .mp-info{width:auto;max-height:40%;border-left:0;border-top:1px solid #e2e7f1;padding:12px 14px 20px}
+  .mp-info.empty{max-height:none;padding:8px 14px}
+  .mp-info.empty .mp-long{display:none}
+}
 [hidden]{display:none!important}
 @media(max-width:760px){
   .tabs{display:none}
@@ -2039,6 +2084,21 @@ updateInfo();
 &lt;/body&gt;
 &lt;/html&gt;
 "></iframe></div>
+<!-- Piaci térkép: a villamosenergia-piac szereplői és kapcsolataik (nem iframe — a shell rajzolja) -->
+<div class="view hidden" id="view-map">
+  <div class="mp-wrap">
+    <div class="mp-stage" id="mp-stage">
+      <div class="mp-legend" id="mp-legend" aria-label="Kapcsolattípusok szűrése"></div>
+      <div class="mp-tools">
+        <button type="button" id="mp-in" aria-label="Nagyítás" title="Nagyítás">+</button>
+        <button type="button" id="mp-out" aria-label="Kicsinyítés" title="Kicsinyítés">−</button>
+        <button type="button" id="mp-fit" aria-label="Teljes térkép" title="Teljes térkép">⤢</button>
+      </div>
+      <svg id="mp-svg" role="img" aria-label="A magyar villamosenergia-piac szereplői és kapcsolataik"></svg>
+    </div>
+    <aside class="mp-info empty" id="mp-info" aria-live="polite"></aside>
+  </div>
+</div>
 <!-- Fogalomtár: a leckék villámkártyáiból (nem iframe — a Tananyag QUIZ_DATA-jából) -->
 <div class="view hidden" id="view-gloss">
   <div class="gl-wrap" id="gl-wrap">
@@ -2086,6 +2146,7 @@ const MENU=[
   {id:'news',  gl:'📰', label:'Hírek',          tab:'📰 Hírek',    group:'napi',     src:'news/*.md'},
   {id:'cal',   gl:'📅', label:'Naptár',         group:'napi',      act:'cal'},
   {id:'cloud', gl:'☁️', label:'Szófelhő',       group:'napi',     src:'a Hírek kulcsszavai', dep:'news'},
+  {id:'map',   gl:'🕸️', label:'Piaci térkép',   group:'segedlet', src:'a villamosenergia-piac szereplői és kapcsolataik'},
   {id:'gloss', gl:'📖', label:'Fogalomtár',     group:'segedlet', src:'a leckék villámkártyái', dep:'tan'},
   {id:'units', gl:'📏', label:'Mértékegységek', tab:'📏 Mért.',    group:'segedlet', src:'beépített táblázat'}
 ];
@@ -2153,6 +2214,7 @@ function showView(v){
   document.body.classList.toggle('tanview',v==='tan');   /* a lecke-alcím csak ott kell */
   if(v==='cloud' && typeof initCloud==='function') initCloud();
   if(v==='gloss' && typeof initGloss==='function') initGloss();
+  if(v==='map' && typeof initMap==='function') initMap();
   if(v!=='tan' && typeof closePick==='function') closePick();
   document.body.classList.toggle('newsview',v==='news');  /* a naptár-alcím csak itt */
   if(v!=='news' && typeof closeCal==='function') closeCal();
@@ -2183,6 +2245,7 @@ scrim.addEventListener('click',closeDrawer);
 function viewReady(id){
   try{
     var f=document.querySelector('#view-'+id+' iframe');
+    if(!f) return !!document.getElementById('view-'+id);   /* iframe nélküli, saját adatú nézet */
     var d=f&&(f.contentDocument||(f.contentWindow&&f.contentWindow.document));
     return !!(d&&d.body&&d.body.childElementCount>0);
   }catch(e){ return false; }   /* ha nem tudjuk, nem állítjuk, hogy rendben van */
@@ -2618,6 +2681,283 @@ function wireTimeline(){
     if(e.target.closest&&e.target.closest('.tl-h')) return;
     var n=nAt(e.clientY);
     setH(Math.abs(n-TL.from)<=Math.abs(n-TL.to)?'from':'to',n);
+  });
+}
+
+/* --- Piaci térkép ------------------------------------------------------------
+   A magyar villamosenergia-piac szereplői (sávonként) és kapcsolataik négy típusban:
+   szabályoz (reg), irányít (ctl), fizet (pay — mindig azzal, hogy miért), tulajdonos (own).
+   EGY adatszerkezet: ebből rajzolódik az ábra ÉS a panel szöveges kapcsolatlistája.
+   Állapot: 2026. október; egyszerűsített tananyag-ábra — a részletek a leckékben.
+   Ellenőrzött pontok: a KÁT/METÁR költségét a MAVIR a nem egyetemes fogyasztókra terheli;
+   a rezsicsökkentett árat Korm. rendelet, az átlag feletti árat MEKH-rendelet adja;
+   a MAVIR az MVM Zrt. 100%-os leánya, független rendszerirányítóként (ITO). */
+var MP_W=1571, MP_H=1230;   /* az elrendezés optimalizálva: egyetlen él se fusson át idegen dobozon, ahol lehet */
+var MP_LANES=[
+  ['EU',                          20, 180, '#eef2ff','#c7d2fe'],
+  ['Állam és szabályozás',       200, 380, '#f5edff','#ddc8f5'],
+  ['Rendszerirányítás és piacok',400, 600, '#e6f3fd','#bcdcf3'],
+  ['Termelés és rugalmasság',    620, 820, '#fff6dd','#f3dd9b'],
+  ['Kereskedelem és ellátás',    840,1020, '#e5f7ea','#b9e3c5'],
+  ['Fogyasztók',                1040,1210, '#fdecf3','#f3c4d8']
+];
+/* id: [név, alcím, sáv, x, y, leckék, leírás] */
+var MP_NODES={
+  eu:    ['Európai Unió','Bizottság · Parlament · Tanács',0,549,100,[5,14],'Az uniós energiajog alkotója: villamosenergia-piaci szabályok, megújuló- és hatékonysági irányelvek, kibocsátás-kereskedelem (ETS). A tagállamok átültetik és végrehajtják.'],
+  acer:  ['ACER','EU energiaszabályozói ügynökség',0,809,100,[5],'A nemzeti energiaszabályozók – így a MEKH – együttműködésének uniós ügynöksége; határkeresztező és piac-összekapcsolási kérdésekben dönt, felügyeli az egységes piac működését.'],
+  entsoe:['ENTSO-E','európai TSO-szövetség',0,1069,100,[12,17],'Az európai átviteli rendszerirányítók szövetsége, a MAVIR is tagja. Kidolgozza a hálózati üzemi szabályzatokat (network codes) és a tízéves hálózatfejlesztési tervet.'],
+  ets:   ['EU ETS','szén-dioxid-kvótapiac',0,1329,100,[5],'Kibocsátás-kereskedelmi rendszer: a fosszilis erőművek minden kibocsátott tonna CO₂ után kvótát kötelesek beszolgáltatni, amit meg kell vásárolniuk.'],
+  gov:   ['Kormány / EM','Energiaügyi Minisztérium',1,589,290,[6,18],'Meghatározza az energiapolitikát, rendeletben a háztartások rezsicsökkentett árát (259/2022. Korm. rendelet), gyakorolja az állami tulajdonosi jogokat az MVM-csoport felett, és finanszírozza a Lakossági Rezsivédelmi Alapot.'],
+  fund:  ['Rezsivédelmi Alap','állami költségvetés',1,329,290,[18],'Költségvetési alap, amelyből a lakossági rezsicsökkentés fedezete származik; 2026-ra tervezett kerete közel 800 milliárd Ft.'],
+  mekh:  ['MEKH','független energiaszabályozó',1,849,290,[6,17,18],'Kiadja az engedélyeket (hálózat, kereskedelem, szervezett piac), rendeletben megállapítja a rendszerhasználati díjakat, felügyeli a piacot és védi a fogyasztókat. Az átlagfogyasztás feletti lakossági árat is rendeletben állapítja meg.'],
+  mvm:   ['MVM Zrt.','állami energiacsoport',1,1285,290,[6],'Az állam integrált energiavállalata. Leányvállalatai között van a MAVIR (100%, de független rendszerirányítóként – ITO-modell), a Paksi Atomerőmű, az MVM Next és két áramelosztó.'],
+  dso:   ['Elosztók (6)','E.ON ×3 · MVM ×2 · OPUS TITÁSZ',2,596,500,[17],'Üzemeltetik a 132 kV-tól 0,4 kV-ig terjedő elosztóhálózatot: csatlakoztatnak, mérnek (okosmérő), és döntenek a háztartási napelemek visszatáplálásáról. Bevételük az elosztói rendszerhasználati díj.'],
+  mavir: ['MAVIR','átviteli rendszerirányító (TSO)',2,1039,500,[3,12,17],'Üzemelteti a 750/400/220 kV-os átviteli hálózatot, valós időben egyensúlyban tartja a rendszert, beszerzi a tartalékokat (FCR/aFRR/mFRR), elszámolja a kiegyenlítő energiát a mérlegkör-felelősökkel, és működteti a KÁT/METÁR támogatási rendszert.'],
+  hupx:  ['HUPX','magyar áramtőzsde',2,336,500,[4,13],'Szervezett villamosenergia-piac: másnapi (az európai SDAC-ba kapcsolt) és napon belüli (SIDC) kereskedés. A MAVIR alapította 2009-ben. A termelők itt adnak el, a kereskedők itt vesznek.'],
+  neigh: ['Szomszédos rendszerek','import · export',2,1371,500,[3,14],'A kontinentális szinkronzóna szomszédos rendszerei. Magyarország jelentős nettó áramimportőr; a határkeresztező kapacitást a rendszerirányítók osztják ki, a piacok összekapcsolásával (SDAC/SIDC).'],
+  paks:  ['Paksi Atomerőmű','MVM · alaperőmű',3,317,720,[10],'A hazai áramtermelés legnagyobb egysége (kb. 46–47%); folyamatosan, alaperőműként termel, áramát a nagykereskedelmi piacon értékesíti.'],
+  gasp:  ['Gáz- és egyéb erőművek','menetrendezhető termelés',3,610,720,[2,4],'Rugalmasan szabályozható erőművek; gyakran ők szabják meg a marginális árat. A kibocsátásuk után CO₂-kvótát kell vásárolniuk.'],
+  res:   ['Nap- és szélerőművek','KÁT/METÁR és piaci',3,1118,720,[11],'Időjárásfüggő termelők. A támogatottak a MAVIR-ral szerződnek: a KÁT-ban rögzített áron veszi át az áramukat (és a HUPX-en értékesíti), a METÁR-ban a piaci ár felett prémiumot kapnak.'],
+  flex:  ['Tárolók, aggregátorok','rugalmasság, tartalékok',3,1392,720,[7,21],'Akkumulátoros tárolók, rugalmas fogyasztók és az őket összefogó aggregátorok. Tartalékot (FCR/aFRR/mFRR) adnak el a MAVIR-nak; az aggregátor háztartási eszközöket is vezérelhet (virtuális erőmű).'],
+  trader:['Kereskedők','versenypiac',4,713,925,[13],'Áramot vásárolnak a tőzsdén vagy közvetlenül a termelőktől, és szerződéses áron értékesítik a vállalatoknak. Mérlegkör-felelősként fizetnek a menetrendtől való eltérésért.'],
+  mvmnext:['MVM Next','egyetemes szolgáltató',4,1103,925,[18],'A háztartások egyetlen egyetemes szolgáltatója. Szabályozott áron értékesít; a rezsicsökkentés fedezete az állami alapból jön.'],
+  biz:   ['Vállalatok','nem egyetemes fogyasztók',5,328,1120,[18],'Szabadpiacon, szerződéses áron vásárolnak. A KÁT/METÁR támogatás költségét a MAVIR (közvetve) rájuk terheli.'],
+  hh:    ['Háztartások','egyetemes szolgáltatás',5,858,1120,[18],'Rezsicsökkentett áron vásárolnak az átlagfogyasztásig (2523 kWh/év), felette piacközeli áron. A számla tartalmazza a hálózati díjakat és az áfát.'],
+  pros:  ['Prosumerek','háztartási napelemesek',5,1118,1120,[21],'Termelő-fogyasztók: bruttó elszámolásnál a betáplált és a vételezett áramot külön árazzák. A visszatáplálást az elosztó engedélyezi vagy korlátozhatja.']
+};
+/* [honnan, hova, típus, felirat, görbítés px] */
+var MP_EDGES=[
+  ['eu','gov','reg','uniós jog átültetése',0],
+  ['acer','mekh','reg','uniós szabályozói együttműködés',0],
+  ['entsoe','mavir','reg','üzemi szabályzatok (network codes)',0],
+  ['mekh','mavir','reg','engedély, díjak, felügyelet',0],
+  ['mekh','dso','reg','engedély, rendszerhasználati díjak',0],
+  ['mekh','hupx','reg','engedély, piacfelügyelet',0],
+  ['mekh','trader','reg','kereskedői engedély, felügyelet',0],
+  ['mekh','mvmnext','reg','felügyelet; átlag feletti ár',98],
+  ['gov','mvmnext','reg','rezsicsökkentett ár (rendelet)',0],
+  ['mavir','dso','ctl','rendszerirányítási koordináció',0],
+  ['mavir','gasp','ctl','menetrend-módosítás (redispatch)',0],
+  ['mavir','res','ctl','termeléskorlátozás',-34],
+  ['mavir','flex','ctl','tartalék aktiválása',27],
+  ['mavir','neigh','ctl','határkeresztező kapacitás',0],
+  ['dso','pros','ctl','csatlakozás, visszatáplálás engedélye',0],
+  ['flex','pros','ctl','eszközvezérlés (virtuális erőmű)',0],
+  ['gov','mvm','own','állami tulajdon',-148],
+  ['mvm','mavir','own','100% (független, ITO-modell)',0],
+  ['mvm','paks','own','tulajdonos',0],
+  ['mvm','mvmnext','own','tulajdonos',0],
+  ['mvm','dso','own','2 elosztó',0],
+  ['hh','mvmnext','pay','áramszámla (energia, díjak, áfa)',0],
+  ['hh','dso','pay','elosztói díj (a számlán)',161],
+  ['hh','mavir','pay','átviteli díj (a számlán)',0],
+  ['biz','trader','pay','szerződéses ár',0],
+  ['biz','dso','pay','elosztói díj (a számlán)',-85],
+  ['biz','mavir','pay','KÁT/METÁR költsége (közvetve)',0],
+  ['pros','mvmnext','pay','vételezett áram',27],
+  ['mvmnext','pros','pay','betáplált áram ára',33],
+  ['trader','hupx','pay','áramvásárlás',0],
+  ['mvmnext','hupx','pay','nagykereskedelmi beszerzés',91],
+  ['hupx','paks','pay','eladott áram ára',0],
+  ['hupx','gasp','pay','eladott áram ára',0],
+  ['mavir','res','pay','KÁT-ár / METÁR-prémium',26],
+  ['trader','mavir','pay','± kiegyenlítő energia',0],
+  ['mavir','flex','pay','tartalékdíj (kapacitás + energia)',-33],
+  ['gasp','ets','pay','CO₂-kvóta',0],
+  ['gov','fund','pay','költségvetési forrás',0],
+  ['fund','mvmnext','pay','rezsicsökkentés fedezete',0]
+];
+var MP_TYPES={reg:['Szabályoz','#7b3fa0','7 5'], ctl:['Irányít','#2563eb',''], pay:['Fizet','#15803d',''], own:['Tulajdonos','#6b7280','2 6']};
+var MP_REL={reg:['Szabályozza / felügyeli','Szabályozója'], ctl:['Irányítja / vezérli','Irányítója'],
+            pay:['Fizet','Fizetnek neki'], own:['Tulajdona','Tulajdonosa']};
+var MP={k:1,tx:0,ty:0,sel:null,ready:false};
+
+function mpNodeSize(id){ var n=MP_NODES[id]; return {w:Math.max(220, n[0].length*9.5+40), h:66}; }
+function mpEsc(x){ return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+/* a téglalap peremének pontja a (dx,dy) irány felé */
+function mpEdgePt(id,dx,dy){
+  var n=MP_NODES[id], sz=mpNodeSize(id), hw=sz.w/2+3, hh=sz.h/2+3;
+  var t=Math.min(dx?hw/Math.abs(dx):1e9, dy?hh/Math.abs(dy):1e9);
+  return [n[3]+dx*t, n[4]+dy*t];
+}
+function buildMap(){
+  /* azonos szereplőpár közti élek szétterítése (görbítés) */
+  /* görbítés: az 5. elem (px, az él irányára merőlegesen) — az elrendezés-optimalizáló adta,
+     hogy az élek ne fussanak át idegen dobozokon, és az azonos pár élei ne fedjék egymást */
+  var bend=MP_EDGES.map(function(e){ return e[4]||0; });
+  var h='<defs>';
+  Object.keys(MP_TYPES).forEach(function(t){
+    h+='<marker id="mp-a-'+t+'" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'+
+       '<path d="M0,0 L10,5 L0,10 z" fill="'+MP_TYPES[t][1]+'"/></marker>';
+  });
+  h+='</defs><g id="mp-world">';
+  MP_LANES.forEach(function(L){
+    h+='<rect x="0" y="'+L[1]+'" width="'+MP_W+'" height="'+(L[2]-L[1])+'" rx="18" fill="'+L[3]+'" stroke="'+L[4]+'"/>'+
+       '<text x="18" y="'+(L[1]+28)+'" font-size="15" font-weight="800" fill="#5b6472" letter-spacing=".5">'+mpEsc(L[0].toUpperCase())+'</text>';
+  });
+  var labels='';
+  MP_EDGES.forEach(function(e,i){
+    var A=MP_NODES[e[0]], Bn=MP_NODES[e[1]], T=MP_TYPES[e[2]];
+    var mx=(A[3]+Bn[3])/2, my=(A[4]+Bn[4])/2, dx=Bn[3]-A[3], dy=Bn[4]-A[4], len=Math.hypot(dx,dy)||1;
+    var cx=mx-dy/len*bend[i], cy=my+dx/len*bend[i];                       /* vezérlőpont */
+    var s0=mpEdgePt(e[0],cx-A[3],cy-A[4]), s1=mpEdgePt(e[1],cx-Bn[3],cy-Bn[4]);
+    var lx=.25*s0[0]+.5*cx+.25*s1[0], ly=.25*s0[1]+.5*cy+.25*s1[1];      /* a görbe közepe */
+    h+='<g class="mp-edge t-'+e[2]+'" data-e="'+i+'"><path d="M'+s0[0].toFixed(1)+','+s0[1].toFixed(1)+' Q'+cx.toFixed(1)+','+cy.toFixed(1)+' '+
+       s1[0].toFixed(1)+','+s1[1].toFixed(1)+'" fill="none" stroke="'+T[1]+'" stroke-width="2" '+(T[2]?'stroke-dasharray="'+T[2]+'" ':'')+
+       'marker-end="url(#mp-a-'+e[2]+')"/></g>';
+    labels+='<text class="mp-elabel t-'+e[2]+'" data-e="'+i+'" x="'+lx.toFixed(1)+'" y="'+(ly+4).toFixed(1)+'" text-anchor="middle" font-size="12.5" font-weight="600" fill="'+T[1]+
+       '" stroke="#ffffff" stroke-width="4" paint-order="stroke" stroke-linejoin="round">'+(e[2]==='pay'?'€ ':'')+mpEsc(e[3])+'</text>';
+  });
+  Object.keys(MP_NODES).forEach(function(id){
+    var n=MP_NODES[id], sz=mpNodeSize(id), L=MP_LANES[n[2]];
+    h+='<g class="mp-node" data-node="'+id+'" tabindex="0" role="button" aria-label="'+mpEsc(n[0]+' – '+n[1])+'">'+
+       '<rect x="'+(n[3]-sz.w/2)+'" y="'+(n[4]-sz.h/2)+'" width="'+sz.w+'" height="'+sz.h+'" rx="14" fill="#ffffff" stroke="'+L[4]+'" stroke-width="2"/>'+
+       '<rect x="'+(n[3]-sz.w/2)+'" y="'+(n[4]-sz.h/2)+'" width="8" height="'+sz.h+'" rx="4" fill="'+L[4]+'"/>'+
+       '<text x="'+n[3]+'" y="'+(n[4]-4)+'" text-anchor="middle" font-size="17" font-weight="800" fill="#1c2230">'+mpEsc(n[0])+'</text>'+
+       '<text x="'+n[3]+'" y="'+(n[4]+17)+'" text-anchor="middle" font-size="12.5" fill="#5b6472">'+mpEsc(n[1])+'</text></g>';
+  });
+  h+=labels+'</g>';                      /* a feliratok legfelül, hogy ne takarják a dobozok */
+  document.getElementById('mp-svg').innerHTML=h;
+}
+function mpApply(){
+  document.getElementById('mp-world').setAttribute('transform','translate('+MP.tx.toFixed(1)+','+MP.ty.toFixed(1)+') scale('+MP.k.toFixed(4)+')');
+  document.getElementById('mp-svg').classList.toggle('zoomed',MP.k>=.8);    /* közelről minden felirat olvasható */
+}
+/* sima átmenet egy célnézetre */
+function mpAnimate(k,tx,ty){
+  var k0=MP.k,x0=MP.tx,y0=MP.ty,t0=performance.now(),D=320;
+  (function step(now){
+    var u=Math.min(1,(now-t0)/D), e=1-Math.pow(1-u,3);
+    MP.k=k0+(k-k0)*e; MP.tx=x0+(tx-x0)*e; MP.ty=y0+(ty-y0)*e; mpApply();
+    if(u<1) requestAnimationFrame(step);
+  })(t0);
+}
+/* a kijelölt szereplő és a szomszédai férjenek a képernyőre, olvasható nagyításon */
+function mpFocus(id){
+  var ids={}; ids[id]=1;
+  MP_EDGES.forEach(function(e){ if(e[0]===id) ids[e[1]]=1; if(e[1]===id) ids[e[0]]=1; });
+  var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  Object.keys(ids).forEach(function(n){ var d=MP_NODES[n], sz=mpNodeSize(n);
+    x0=Math.min(x0,d[3]-sz.w/2); x1=Math.max(x1,d[3]+sz.w/2); y0=Math.min(y0,d[4]-sz.h/2); y1=Math.max(y1,d[4]+sz.h/2); });
+  var st=document.getElementById('mp-stage'), W=st.clientWidth, H=st.clientHeight, top=56, pad=24;
+  var k=Math.min((W-2*pad)/(x1-x0), (H-top-2*pad)/(y1-y0), 1.1);
+  k=Math.max(k, MP.k);                                    /* csak közelít, nem távolít */
+  mpAnimate(k, (W-(x1-x0)*k)/2-x0*k, top+(H-top-(y1-y0)*k)/2-y0*k);
+}
+function mpFit(){
+  var st=document.getElementById('mp-stage'), W=st.clientWidth, H=st.clientHeight; if(!W||!H) return;
+  var top=56;                                            /* a jelmagyarázat alá */
+  MP.k=Math.min(W/MP_W, (H-top)/MP_H)*.97;
+  MP.tx=(W-MP_W*MP.k)/2; MP.ty=top+(H-top-MP_H*MP.k)/2; mpApply();
+}
+function mpZoomAt(px,py,f){
+  var k=Math.min(4,Math.max(.15,MP.k*f)); f=k/MP.k;
+  MP.tx=px-(px-MP.tx)*f; MP.ty=py-(py-MP.ty)*f; MP.k=k; mpApply();
+}
+function mpSelect(id){
+  var svg=document.getElementById('mp-svg'); MP.sel=id||null;
+  svg.classList.toggle('sel',!!id);
+  var on={};
+  svg.querySelectorAll('.mp-edge,.mp-elabel').forEach(function(g){
+    var e=MP_EDGES[+g.getAttribute('data-e')], hit=id&&(e[0]===id||e[1]===id);
+    g.classList.toggle('on',!!hit); if(hit){ on[e[0]]=1; on[e[1]]=1; }
+  });
+  svg.querySelectorAll('.mp-node').forEach(function(g){
+    var nid=g.getAttribute('data-node'); g.classList.toggle('on',!!on[nid]||nid===id); g.classList.toggle('focus',nid===id);
+  });
+  mpInfo();
+}
+function mpInfo(){
+  var box=document.getElementById('mp-info'), id=MP.sel;
+  box.classList.toggle('empty',!id);
+  if(!id){
+    box.innerHTML='<h3>🕸️ Piaci térkép</h3><p class="mp-hint">Koppints egy szereplőre: kiemelődnek a kapcsolatai, itt pedig szövegesen is látod, kit szabályoz, kinek fizet és miért.</p>'+
+      '<div class="mp-long"><p class="mp-hint">Húzással csúsztatod, görgővel vagy két ujjal nagyítod, dupla koppintással közelítesz; a ⤢ visszaállít. A felső címkékkel kapcsolattípusokat kapcsolhatsz ki.</p>'+
+      '<p class="mp-note">A magyar villamosenergia-piac egyszerűsített ábrája (2026. október). A pénzáramlások a fő elszámolási logikát mutatják; a hálózati díjakat a fogyasztó a számláján fizeti, a kereskedő vagy egyetemes szolgáltató közvetítésével.</p></div>';
+    return;
+  }
+  var n=MP_NODES[id], h='<button type="button" class="mp-close" aria-label="Bezárás" data-close="1">✕</button>'+
+    '<h3>'+mpEsc(n[0])+'</h3><div class="mp-sub">'+mpEsc(n[1])+'</div><p>'+mpEsc(n[6])+'</p>';
+  Object.keys(MP_REL).forEach(function(t){
+    [0,1].forEach(function(dir){
+      var rows=MP_EDGES.filter(function(e){ return e[2]===t && e[dir]===id; });
+      if(!rows.length) return;
+      h+='<h4><span class="mp-k" style="background:'+MP_TYPES[t][1]+'"></span>'+MP_REL[t][dir]+'</h4><ul>'+rows.map(function(e){
+        var other=e[1-dir];
+        return '<li><button type="button" data-go="'+other+'">'+mpEsc(MP_NODES[other][0])+'</button> – '+mpEsc(e[3])+'</li>';
+      }).join('')+'</ul>';
+    });
+  });
+  if(n[5]&&n[5].length) h+='<h4>Kapcsolódó leckék</h4><p>'+n[5].map(function(l){
+    return '<button type="button" class="gl-src" data-lesson="'+l+'">📚 '+l+'. lecke</button>'; }).join(' ')+'</p>';
+  box.innerHTML=h; box.scrollTop=0;
+}
+function initMap(){
+  if(MP.ready){ requestAnimationFrame(function(){ if(!MP.touched) mpFit(); }); return; }
+  MP.ready=true;
+  buildMap();
+  document.getElementById('mp-legend').innerHTML=Object.keys(MP_TYPES).map(function(t){
+    return '<button type="button" aria-pressed="true" data-t="'+t+'" style="color:'+MP_TYPES[t][1]+'"><i></i><span style="color:#1c2230">'+MP_TYPES[t][0]+'</span></button>'; }).join('');
+  mpInfo();
+  var stage=document.getElementById('mp-stage'), svg=document.getElementById('mp-svg');
+  requestAnimationFrame(mpFit);
+  window.addEventListener('resize',function(){ if(!MP.touched) mpFit(); });
+  document.getElementById('mp-legend').addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('button'); if(!b) return;
+    var on=b.getAttribute('aria-pressed')!=='true'; b.setAttribute('aria-pressed',on?'true':'false');
+    svg.classList.toggle('hide-'+b.getAttribute('data-t'),!on);
+  });
+  function center(){ var r=stage.getBoundingClientRect(); return [r.width/2,r.height/2]; }
+  document.getElementById('mp-in').addEventListener('click',function(){ var c=center(); MP.touched=1; mpZoomAt(c[0],c[1],1.35); });
+  document.getElementById('mp-out').addEventListener('click',function(){ var c=center(); MP.touched=1; mpZoomAt(c[0],c[1],1/1.35); });
+  document.getElementById('mp-fit').addEventListener('click',function(){ MP.touched=0; mpFit(); });
+  /* csúsztatás, csípős nagyítás, koppintás — pointer eseményekkel (egér, toll, érintés) */
+  var ptrs=new Map(), start=null, pinch=null, moved=false, lastTap=0;
+  function rel(e){ var r=stage.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+  stage.addEventListener('pointerdown',function(e){
+    if(e.target.closest('.mp-tools,.mp-legend')) return;
+    stage.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,rel(e));
+    if(ptrs.size===1){ var p=rel(e); start={x:p[0],y:p[1],tx:MP.tx,ty:MP.ty,target:e.target}; moved=false; }
+    if(ptrs.size===2){ var v=[...ptrs.values()]; pinch={d:Math.hypot(v[0][0]-v[1][0],v[0][1]-v[1][1]), mx:(v[0][0]+v[1][0])/2, my:(v[0][1]+v[1][1])/2, k:MP.k, tx:MP.tx, ty:MP.ty}; moved=true; }
+  });
+  stage.addEventListener('pointermove',function(e){
+    if(!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId,rel(e));
+    if(ptrs.size>=2&&pinch){
+      var v=[...ptrs.values()], d=Math.hypot(v[0][0]-v[1][0],v[0][1]-v[1][1]), mx=(v[0][0]+v[1][0])/2, my=(v[0][1]+v[1][1])/2;
+      var k=Math.min(4,Math.max(.15,pinch.k*d/pinch.d)), wx=(pinch.mx-pinch.tx)/pinch.k, wy=(pinch.my-pinch.ty)/pinch.k;
+      MP.k=k; MP.tx=mx-wx*k; MP.ty=my-wy*k; MP.touched=1; mpApply();
+    } else if(start){
+      var p=rel(e), dx=p[0]-start.x, dy=p[1]-start.y;
+      if(Math.abs(dx)+Math.abs(dy)>5) moved=true;
+      if(moved){ MP.tx=start.tx+dx; MP.ty=start.ty+dy; MP.touched=1; mpApply(); }
+    }
+  });
+  function end(e){
+    if(!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId);
+    if(ptrs.size===1){ var v=[...ptrs.values()][0]; start={x:v[0],y:v[1],tx:MP.tx,ty:MP.ty,target:null}; pinch=null; return; }
+    if(ptrs.size===0){
+      if(!moved&&start){
+        var now=Date.now(), p=rel(e);
+        if(now-lastTap<320){ MP.touched=1; mpZoomAt(p[0],p[1],1.6); lastTap=0; }       /* dupla koppintás: közelítés */
+        else { lastTap=now; var g=start.target&&start.target.closest&&start.target.closest('.mp-node');
+               var nid=g?g.getAttribute('data-node'):null; mpSelect(nid);
+               if(nid){ MP.touched=1; requestAnimationFrame(function(){ mpFocus(nid); }); } }
+      }
+      start=null; pinch=null;
+    }
+  }
+  stage.addEventListener('pointerup',end); stage.addEventListener('pointercancel',end);
+  stage.addEventListener('wheel',function(e){
+    e.preventDefault(); var p=rel(e); MP.touched=1; mpZoomAt(p[0],p[1],Math.exp(-e.deltaY*.0015));
+  },{passive:false});
+  svg.addEventListener('keydown',function(e){
+    var g=e.target.closest&&e.target.closest('.mp-node'); if(g&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); var nid=g.getAttribute('data-node'); mpSelect(nid); MP.touched=1; mpFocus(nid); }
+  });
+  document.getElementById('mp-info').addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('button'); if(!b) return;
+    if(b.getAttribute('data-close')) return mpSelect(null);
+    var go=b.getAttribute('data-go'); if(go){ mpSelect(go); MP.touched=1; requestAnimationFrame(function(){ mpFocus(go); }); return; }
+    var l=b.getAttribute('data-lesson'); if(l){ showView('tan'); requestAnimationFrame(function(){ pickLesson(l); }); }
   });
 }
 
