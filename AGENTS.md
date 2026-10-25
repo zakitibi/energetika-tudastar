@@ -77,6 +77,17 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 - **Az ⓘ panel a live állapotból épül:** nézetenként ● (betöltött) / ▲ (nem) + forráscímke.
 - **A fiók lábrésze:** balra a **frissítési állapot** (a tartalom kora + mikor jött le a
   hálózatról), jobbra a ↻ gomb. Nem egymásba ágyazva — `<button>` egy `<a>`-ban érvénytelen.
+- **Hibatűrés és diagnosztika (2026-10-25).** ⚠️ Tanulság: ha a böngésző a `navigator.serviceWorker`
+  (vagy `localStorage`/`caches`) elérésekor hibát dob — Chrome/Safari letiltott sütik/webhelyadatok
+  mellett, privát módban, app-ba épített böngészőben —, egy **felső szintű** dobás a shell szkript
+  minden későbbi részét leállítja: a végén definiált `var` adatok (Szófelhő, Fogalomtár, Piaci térkép)
+  üresek maradnak, a korábbi részek működnek. Ezért: **a böngésző-API-kat érintő felső szintű kódot
+  mindig `try/catch`-be tedd**; a nézetek indítása (`initCloud/initGloss/initMap`) is védett.
+  A shell szkript legelején **`APP_VERSION`** (kitelepítésenként emeld; a fiók alján és a hibasávban
+  látszik) és egy **hibasáv** (`#err-banner`, `showAppError`), ami a shell és a Hírek-nézet futási
+  hibáit a lap alján kiírja. A Hírek-nézet egy külön, a fő szkript ELŐTT futó `<script>`-tel gyűjti a
+  saját hibáit. Teszt: a „letiltott webhelyadatok” mód szimulálható `addInitScript`-tel (a gettereket
+  SecurityError-ra cserélve) — minden nézetnek működnie kell.
 - **Gyorsítótár: `sw.js` (service worker).** **Az oldal (HTML) hálózat-először:** online mindig a
   legfrissebb jön; ha 4 s alatt nincs válasz vagy offline, a gyorsítótár utolsó példánya. **Minden más**
   (ikonok, manifest) 1 napig cache-ből, háttérfrissítéssel. A hálózati kérés **URL-lel** megy (egy
@@ -246,6 +257,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-25: Hibatűrés letiltott webhelyadatok mellett (a Szófelhő/Fogalomtár/Piaci térkép eddig ilyenkor üres maradt); hibasáv + `APP_VERSION`.
 - 2026-10-25: Service worker: az oldal hálózat-először (a PWA beragadt a régi változaton), cache v2, automatikus frissítés-ellenőrzés.
 - 2026-10-25: Piaci térkép nézet (21 szereplő, 39 kapcsolat, csúsztatás/nagyítás); Szófelhő: korai adat-export + látható hibaállapot.
 - 2026-10-25: Fogalomtár nézet (97 fogalom a 21 lecke 103 villámkártyájából); a naptár a fejléc sorában.
