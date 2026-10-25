@@ -118,6 +118,13 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   **Mindig a fejléc sorában marad** (a cím és az ⓘ között, sosem kap új sort): `flex:1000 1 0`
   (nem tör, a spacer előtt kap helyet), `max-width:max-content`; 760 px alatt rövid felirat
   („okt. 21.”), 360 px alatt az emoji is elmarad. Ezért a fülsor 900 px alatt rejtett.
+- **Fogalomtár nézet** (`#view-gloss`, 📖, a Mértékegységek fölött): **nem iframe, és nincs saját
+  fogalomlistája** — a leckék villámkártyáiból épül. Az `Energetika_Tananyag.html` a `TITLES` után
+  `window.QUIZ_DATA=QUIZ; window.TITLES_DATA=TITLES;` sorral kiteszi az adatot (a rebuild átviszi
+  a SPA-ba). Az azonos fogalmat (kis-nagybetű, zárójeles kiegészítés, „ / ” köze nem számít) egy
+  bejegyzésbe vonja, leckénkénti magyarázattal és lecke-hivatkozással. Magyar ABC szerinti
+  betűsáv (Cs, Gy, Sz… kettős betűkkel), ékezet nélkül is kereső. **Új lecke kártyái maguktól
+  bekerülnek** — ezért a kártya eleje legyen valódi fogalom, ne kérdés.
 - **A „Naptár” menüpont** (`MENU[].act`) a Hírek nézetre vált és megnyitja a fejléc-naptárt
   (minden szélességen). A Hírek-nézet saját `#navtoggle` sávja `display:none` a news srcdoc CSS-ében.
 - A Tananyag-iframe saját ☰ („Leckék”) gombja **el van rejtve** az `embed-override` CSS-ben
@@ -219,6 +226,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-25: Fogalomtár nézet (97 fogalom a 21 lecke 103 villámkártyájából); a naptár a fejléc sorában.
 - 2026-10-25: Fejléc-naptár a Hírek nézetben; PWA-manifest + app-ikon (⚡ a fejléc kék színátmenetén) és böngészőfül-ikon; a mobil görgetésfigyelő javítva.
 - 2026-10-21: 17–21. lecke (hálózatok, energiaszámla, hőenergia, üzemanyagpiac, prosumerek) — `Energetika_Tananyag.html` + `rebuild_tananyag_html.py`.
 - 2026-10-21: Szófelhő: szóra kattintva szűrt Hírek (időszakra, hónapokon át); kulcsszó-összevonás (`KW_ALIAS`) egy helyen.
