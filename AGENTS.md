@@ -115,6 +115,9 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   gombbal. A választás a Hírek-nézet `goDay(dátum)` függvényét hívja (szükség esetén hónapot
   vált és kilép a szűrésből); az alcímet `MutationObserver` + `newsState()` tartja szinkronban.
   Más nézetben a `body.newsview` hiányában nem látszik.
+  **Mindig a fejléc sorában marad** (a cím és az ⓘ között, sosem kap új sort): `flex:1000 1 0`
+  (nem tör, a spacer előtt kap helyet), `max-width:max-content`; 760 px alatt rövid felirat
+  („okt. 21.”), 360 px alatt az emoji is elmarad. Ezért a fülsor 900 px alatt rejtett.
 - **A „Naptár” menüpont** (`MENU[].act`) a Hírek nézetre vált és megnyitja a fejléc-naptárt
   (minden szélességen). A Hírek-nézet saját `#navtoggle` sávja `display:none` a news srcdoc CSS-ében.
 - A Tananyag-iframe saját ☰ („Leckék”) gombja **el van rejtve** az `embed-override` CSS-ben

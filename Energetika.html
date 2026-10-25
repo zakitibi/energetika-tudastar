@@ -44,6 +44,14 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
      font:inherit;font-size:13px;font-weight:600;padding:6px 11px;border-radius:18px;
      cursor:pointer;transition:background .15s}
 body.tanview #lessonpick,body.newsview #calpick{display:inline-flex}   /* lecke: Tananyag, naptár: Hírek */
+#calpick .short{display:none}
+/* a naptár a cím és az ⓘ között marad, sosem kap új sort: 0-s alapméret (nem tör), nagy grow
+   (a spacer előtt kap helyet), és legfeljebb a saját tartalmáig nő */
+body.newsview #calpick{flex:1000 1 0;min-width:0;max-width:max-content}
+/* 900 px alatt a fülsor nem fér el a választó mellett — a fiók ugyanazt tudja */
+@media(max-width:900px){.tabs{display:none}}
+/* a legkeskenyebb telefonokon (≤360 px) a dátumnak kell a hely: az emoji helyett a nyíl jelzi a lenyílót */
+@media(max-width:360px){body.newsview #calpick>span:first-child{display:none}}
 body.tanview .brand .sub,body.newsview .brand .sub{display:none}      /* az alcím helyét a választó veszi át */
 .subpick:hover{background:rgba(255,255,255,.26)}
 .subpick .sp-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -165,7 +173,11 @@ body.tanview .brand .sub,body.newsview .brand .sub{display:none}      /* az alc�
 @media(max-width:760px){
   .tabs{display:none}
   /* a lecke-alcím saját sorba kerül — ott tényleg alcímként olvasható */
-  body.tanview #lessonpick,body.newsview #calpick{flex-basis:100%;max-width:100%;margin:0 0 6px;order:9}
+  body.tanview #lessonpick{flex-basis:100%;max-width:100%;margin:0 0 6px;order:9}
+  /* a naptár a cím és az ⓘ között marad: 0-s alapméret → nem töri új sorba, max a saját tartalmáig nő */
+  body.newsview #calpick{padding:6px 9px;gap:5px}
+  #calpick .full{display:none}
+  #calpick .short{display:inline}
 }
 
 @media(max-width:600px){
@@ -200,7 +212,7 @@ body.tanview .brand .sub,body.newsview .brand .sub{display:none}      /* az alc�
   <!-- a kiválasztott hírnap alcímként, egyben naptár (csak a Hírek nézetben) -->
   <button class="subpick" id="calpick" type="button" aria-haspopup="dialog"
           aria-expanded="false" aria-controls="calmenu">
-    <span aria-hidden="true">📅</span><span class="sp-txt" id="calpick-txt">Naptár</span>
+    <span aria-hidden="true">📅</span><span class="sp-txt" id="calpick-txt"><span class="full">Naptár</span><span class="short">Naptár</span></span>
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
          stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <polyline points="6 9.5 12 15.5 18 9.5"/>
@@ -2281,9 +2293,13 @@ function newsDaySet(){
 function todayIso(){ var t=new Date(); return t.getFullYear()+'-'+pad2(t.getMonth()+1)+'-'+pad2(t.getDate()); }
 function paintCalLabel(){
   var st=nstate(); if(!st) return;
-  if(st.filter){ calTxt.textContent='Szűrt hírek'; return; }
-  if(st.d){ var p=st.d.split('-'); calTxt.textContent=p[0]+'. '+HU_MON[+p[1]-1]+' '+(+p[2])+'.'; }
-  else calTxt.textContent=st.y+'. '+HU_MON_LONG[+st.m-1];
+  var full, short;
+  if(st.filter){ full='Szűrt hírek'; short='Szűrt'; }
+  else if(st.d){ var p=st.d.split('-'); short=HU_MON[+p[1]-1]+' '+(+p[2])+'.'; full=p[0]+'. '+short; }
+  else { full=st.y+'. '+HU_MON_LONG[+st.m-1]; short=st.y+'. '+HU_MON[+st.m-1]; }
+  calTxt.querySelector('.full').textContent=full;      /* asztal: „2026. okt. 21.” */
+  calTxt.querySelector('.short').textContent=short;    /* mobil: „okt. 21.” — elfér a cím és az ⓘ között */
+  calBtn.setAttribute('aria-label','Hírnap választása: '+full);
 }
 function renderCal(){
   var days=newsDaySet(), keys=Object.keys(days).sort(); if(!keys.length) return;
