@@ -2,6 +2,17 @@
 <html lang="hu"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Energetika</title>
+<meta name="description" content="Személyes energetikai tudástár: leckék, napi hírek, kvíz és szófelhő, magyar energiapiaci fókusszal.">
+<!-- PWA + böngészőfül ikonja (forrás: icons/icon.svg; a PNG-k abból raszterizálva) -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icons/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#1F4E79">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Energetika">
 <style>
 :root{--blue:#1F4E79;--blue2:#2E5496}
 *{box-sizing:border-box}
@@ -32,8 +43,8 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#eef1f7}
      background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);color:#fff;
      font:inherit;font-size:13px;font-weight:600;padding:6px 11px;border-radius:18px;
      cursor:pointer;transition:background .15s}
-body.tanview .subpick{display:inline-flex}      /* csak a Tananyag nézetben van értelme */
-body.tanview .brand .sub{display:none}          /* az alcím helyét a lecke veszi át */
+body.tanview #lessonpick,body.newsview #calpick{display:inline-flex}   /* lecke: Tananyag, naptár: Hírek */
+body.tanview .brand .sub,body.newsview .brand .sub{display:none}      /* az alcím helyét a választó veszi át */
 .subpick:hover{background:rgba(255,255,255,.26)}
 .subpick .sp-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .subpick svg{flex:none;transition:transform .15s}
@@ -54,6 +65,28 @@ body.tanview .brand .sub{display:none}          /* az alcím helyét a lecke ves
 .ptitle{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pmeta{font-size:11px;color:#5b6472}
 .pickitem.current .pmeta{color:#dbe6f6}
+/* fejléc-naptár (Hírek nézet) — a napot a hírek közül lehet választani */
+.calmenu{position:fixed;z-index:55;width:300px;padding:12px;background:#fff;color:#1c2230;border-radius:14px;
+     box-shadow:0 18px 50px rgba(0,0,0,.28)}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-nav b{font-size:14.5px;color:var(--blue)}
+.cal-nav button{width:32px;height:32px;border:1px solid #e2e7f1;background:#fff;border-radius:50%;
+     font:inherit;font-size:16px;color:var(--blue);cursor:pointer}
+.cal-nav button:disabled{opacity:.3;cursor:default}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.cal-grid .wd{font-size:10.5px;font-weight:700;color:#5b6472;padding:2px 0}
+.cal-grid .cd{position:relative;height:34px;display:flex;align-items:center;justify-content:center;
+     border-radius:8px;font-size:13px;color:#b0b8c6;border:0;background:none;font-family:inherit}
+.cal-grid .cd.has{color:var(--blue);font-weight:700;background:#eef3fb;cursor:pointer}
+.cal-grid .cd.has::after{content:'';position:absolute;bottom:4px;left:50%;width:4px;height:4px;margin-left:-2px;
+     border-radius:50%;background:var(--blue2)}
+.cal-grid .cd.has:hover{background:#dde6f5}
+.cal-grid .cd.today{box-shadow:inset 0 0 0 1.5px var(--blue2)}
+.cal-grid .cd.sel{background:var(--blue);color:#fff}
+.cal-grid .cd.sel::after{background:#fff}
+.cal-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11.5px;color:#5b6472}
+.cal-foot button{border:1px solid #e2e7f1;background:#fff;color:var(--blue2);font:inherit;font-weight:600;
+     padding:5px 10px;border-radius:14px;cursor:pointer}
 /* --- bal oldali fiók (drawer) --- */
 .drawer{position:fixed;top:0;left:0;bottom:0;width:276px;max-width:84vw;z-index:60;
      background:#fff;color:#1c2230;display:flex;flex-direction:column;
@@ -132,10 +165,9 @@ body.tanview .brand .sub{display:none}          /* az alcím helyét a lecke ves
 @media(max-width:760px){
   .tabs{display:none}
   /* a lecke-alcím saját sorba kerül — ott tényleg alcímként olvasható */
-  body.tanview .subpick{flex-basis:100%;max-width:100%;margin:0 0 6px;order:9}
+  body.tanview #lessonpick,body.newsview #calpick{flex-basis:100%;max-width:100%;margin:0 0 6px;order:9}
 }
-/* a Hírek navigátora 900px fölött állandóan látszik, ott nincs mit nyitni */
-@media(min-width:901px){#dnav-cal{display:none}}
+
 @media(max-width:600px){
   .bar{padding:8px 12px;gap:6px}
   .brand .sub{display:none}
@@ -160,6 +192,15 @@ body.tanview .brand .sub{display:none}          /* az alcím helyét a lecke ves
   <button class="subpick" id="lessonpick" type="button" aria-haspopup="listbox"
           aria-expanded="false" aria-controls="lessonmenu">
     <span class="sp-txt" id="lessonpick-txt">Leckék</span>
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+         stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="6 9.5 12 15.5 18 9.5"/>
+    </svg>
+  </button>
+  <!-- a kiválasztott hírnap alcímként, egyben naptár (csak a Hírek nézetben) -->
+  <button class="subpick" id="calpick" type="button" aria-haspopup="dialog"
+          aria-expanded="false" aria-controls="calmenu">
+    <span aria-hidden="true">📅</span><span class="sp-txt" id="calpick-txt">Naptár</span>
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
          stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <polyline points="6 9.5 12 15.5 18 9.5"/>
@@ -198,6 +239,7 @@ body.tanview .brand .sub{display:none}          /* az alcím helyét a lecke ves
 
 <div class="pickscrim" id="pickscrim" hidden></div>
 <div class="pickmenu" id="lessonmenu" role="listbox" aria-label="Leckék" hidden></div>
+<div class="calmenu" id="calmenu" role="dialog" aria-label="Hírnap választása" hidden></div>
 
 <div id="info-overlay" hidden>
   <div id="info-panel" role="dialog" aria-modal="true" aria-label="Mi ez az alkalmazás?">
@@ -1360,17 +1402,20 @@ function setActive(date){
   activeDate=date;
   document.querySelectorAll(&#x27;.cd.has&#x27;).forEach(c=&gt;c.classList.toggle(&#x27;active&#x27;,c.dataset.date===date));
 }
+var spyLock=0;   /* programozott ugrás után ne írja felül a görgetésfigyelő a választott napot */
 function updateSpy(){
+  if(Date.now()&lt;spyLock) return;
+  if(!mid.offsetHeight) return;   /* rejtett nézetben minden pozíció 0 lenne → a legutolsó napot jelölné */
   const secs=[...mid.querySelectorAll(&#x27;.day&#x27;)];
   if(!secs.length) return;
-  const top=mid.getBoundingClientRect().top;
+  const top=Math.max(0,mid.getBoundingClientRect().top);   /* mobilon a lap görög, nem a .mid */
   let act=secs[0].dataset.date;
   for(const s of secs){ if(s.getBoundingClientRect().top-top&lt;=90) act=s.dataset.date; }
   setActive(act);
 }
 function jumpDay(date){ if(kwActive) renderNews();
   const el=document.getElementById(&#x27;day-&#x27;+date);
-  if(el){ el.scrollIntoView({block:&#x27;start&#x27;,behavior:&#x27;smooth&#x27;}); setActive(date); }
+  if(el){ spyLock=Date.now()+1700; tocGo(&#x27;day-&#x27;+date); setActive(date); }   /* tocGo: görgetés + igazítás */
 }
 function jumpKw(kw){ if(kwActive) renderNews();
   const o=NEWS[curYear][curMonth];
@@ -1384,6 +1429,7 @@ function renderAll(){renderYears();renderMonths();renderKeywords();renderNews();
 function selYear(y){curYear=y; curMonth=monthsWithData(y).sort().reverse()[0]; activeDate=null; renderAll();}
 function selMonth(mm){curMonth=mm; activeDate=null; renderAll();}
 mid.addEventListener(&#x27;scroll&#x27;,()=&gt;requestAnimationFrame(updateSpy));
+window.addEventListener(&#x27;scroll&#x27;,()=&gt;requestAnimationFrame(updateSpy));   /* mobil: a lap görög */
 renderAll();
 var _ntb=document.getElementById(&#x27;navtoggle&#x27;);if(_ntb){_ntb.addEventListener(&#x27;click&#x27;,function(){var nav=document.querySelector(&#x27;.nav&#x27;);nav.classList.toggle(&#x27;open&#x27;);_ntb.textContent=nav.classList.contains(&#x27;open&#x27;)?&#x27;\u2715 Bez\xe1r\xe1s&#x27;:&#x27;\u2630 Navig\xe1tor / Napt\xe1r&#x27;;});}
 
@@ -1393,9 +1439,13 @@ var _ntb=document.getElementById(&#x27;navtoggle&#x27;);if(_ntb){_ntb.addEventLi
 function tocGo(id){
   var e=document.getElementById(id); if(!e) return false;
   e.scrollIntoView({behavior:&#x27;smooth&#x27;,block:&#x27;start&#x27;});
-  var done=false, fix=function(){ if(done) return; done=true;
-    window.removeEventListener(&#x27;scrollend&#x27;,fix,true); e.scrollIntoView({block:&#x27;start&#x27;}); };
+  var USER=[&#x27;wheel&#x27;,&#x27;touchstart&#x27;,&#x27;keydown&#x27;,&#x27;mousedown&#x27;];
+  var done=false, off=function(){ done=true; window.removeEventListener(&#x27;scrollend&#x27;,fix,true);
+        USER.forEach(function(ev){ window.removeEventListener(ev,cancel,true); }); },
+      fix=function(){ if(done) return; off(); e.scrollIntoView({block:&#x27;start&#x27;}); },
+      cancel=function(){ if(done) return; off(); if(typeof spyLock!==&#x27;undefined&#x27;) spyLock=0; };  /* a saját görgetés elsőbbséget kap */
   if(&#x27;onscrollend&#x27; in window) window.addEventListener(&#x27;scrollend&#x27;,fix,true);
+  USER.forEach(function(ev){ window.addEventListener(ev,cancel,{capture:true,passive:true}); });
   setTimeout(fix,1500);
   return false;
 }
@@ -1467,6 +1517,20 @@ function filterKw(kw,from,to){
   return n;
 }
 function clearKw(){ kwActive=false; renderAll(); }
+
+
+/* --- a shell fejléc-naptára hívja ------------------------------------------
+   newsState(): a nézet állapota (a let-változók nem kerülnek a window-ra).
+   goDay(dátum): bármely hónap bármely napjára ugrik — ha kell, hónapot vált,
+   és kilép a kulcsszó-szűrésből. */
+function newsState(){ return {y:curYear, m:curMonth, d:activeDate, filter:kwActive}; }
+function goDay(date){
+  var y=date.slice(0,4), m=date.slice(5,7);
+  if(!NEWS[y]||!NEWS[y][m]) return false;
+  if(kwActive||y!==curYear||m!==curMonth){ curYear=y; curMonth=m; activeDate=null; renderAll(); }
+  requestAnimationFrame(function(){ jumpDay(date); });
+  return true;
+}
 
 /* a shell Szófelhő nézete innen olvassa a híreket (a const nem kerül a window-ra) */
 window.NEWS_DATA=NEWS;
@@ -2037,12 +2101,18 @@ function showView(v){
   document.body.classList.toggle('tanview',v==='tan');   /* a lecke-alcím csak ott kell */
   if(v==='cloud' && typeof initCloud==='function') initCloud();
   if(v!=='tan' && typeof closePick==='function') closePick();
+  document.body.classList.toggle('newsview',v==='news');  /* a naptár-alcím csak itt */
+  if(v!=='news' && typeof closeCal==='function') closeCal();
+  if(v==='news' && typeof paintCalLabel==='function'){   /* láthatóvá vált: most mérhető, melyik nap van felül */
+    requestAnimationFrame(function(){ var w=nwin(); try{ if(w&&w.updateSpy) w.updateSpy(); }catch(e){} paintCalLabel(); });
+  }
   try{localStorage.setItem('energetika_view',v);}catch(e){}
 }
 
 /* --- fiók ------------------------------------------------------------------ */
 function openDrawer(){
   if(typeof closePick==='function') closePick();
+  if(typeof closeCal==='function') closeCal();
   drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false');
   scrim.hidden=false; menubtn.setAttribute('aria-expanded','true'); pageLock.lock();
   var first=drawer.querySelector('.drawer-item'); if(first) first.focus();  /* nyitott menü = ott is a fókusz */
@@ -2090,7 +2160,7 @@ function renderInfo(){
   document.getElementById('info-close').addEventListener('click',closeInfo);
 }
 function openInfo(){
-  closeDrawer(); if(typeof closePick==='function') closePick();                      /* két egymásra nyíló, lockolt overlay beragasztja a lapot */
+  closeDrawer(); if(typeof closePick==='function') closePick(); if(typeof closeCal==='function') closeCal();                      /* két egymásra nyíló, lockolt overlay beragasztja a lapot */
   infoContent.innerHTML='<p>Betöltés…</p>';
   infoOverlay.hidden=false; pageLock.lock();
   requestAnimationFrame(renderInfo);  /* a keret azonnal, a tartalom utána */
@@ -2106,6 +2176,7 @@ document.addEventListener('keydown',function(e){
   if(e.key!=='Escape') return;
   if(!infoOverlay.hidden){ closeInfo(); return; }
   if(!pickMenu.hidden){ closePick(true); return; }
+  if(!calMenu.hidden){ closeCal(true); return; }
   closeDrawer();
 });
 
@@ -2145,6 +2216,7 @@ function placePick(){
   pickMenu.style.maxHeight=Math.max(160,window.innerHeight-r.bottom-24)+'px';
 }
 function openPick(){
+  if(typeof closeCal==='function') closeCal();
   var items=lessons(); if(!items.length) return;
   pickMenu.innerHTML=items.map(function(l){
     return '<button class="pickitem'+(l.active?' current':'')+'" type="button" role="option"'+
@@ -2189,20 +2261,94 @@ window.addEventListener('resize',function(){ if(!pickMenu.hidden) placePick(); }
   paintLessonLabel();
 })();
 
-/* --- Naptár: a Hírek fül navigátora a fiókból vezérelve ---------------------
-   A srcdoc iframe azonos eredetű, így közvetlenül elérjük. A nézet saját
-   "☰ Navigátor / Naptár" sávja ezért el van rejtve — ez a menüpont váltja ki. */
-function toggleCal(){
-  showView('news');
-  try{
-    var f=document.querySelector('#view-news iframe');
-    var d=f&&(f.contentDocument||(f.contentWindow&&f.contentWindow.document));
-    var nav=d&&d.querySelector('.nav');
-    if(!nav) return;
-    nav.classList.toggle('open');
-    if(nav.classList.contains('open') && nav.scrollIntoView) nav.scrollIntoView({block:'start'});
-  }catch(e){}
+/* --- fejléc-naptár (Hírek nézet) -------------------------------------------
+   Az alcím a kiválasztott hírnapot mutatja, és belőle gördül le egy havi
+   naptár: a hírnapok kattinthatók, a hónapok ‹ › gombbal léptethetők az első
+   hírnaptól a mai napig. A választás a Hírek-nézet goDay() függvényét hívja,
+   az alcímet egy MutationObserver tartja szinkronban a nézet saját naptárával. */
+var calBtn=document.getElementById('calpick'), calTxt=document.getElementById('calpick-txt'),
+    calMenu=document.getElementById('calmenu'), calView=null;
+var HU_MON_LONG=['január','február','március','április','május','június','július','augusztus','szeptember','október','november','december'];
+function pad2(n){ return String(n).padStart(2,'0'); }
+function nwin(){ try{ return document.querySelector('#view-news iframe').contentWindow; }catch(e){ return null; } }
+function nstate(){ var w=nwin(); return (w&&typeof w.newsState==='function')?w.newsState():null; }
+function newsDaySet(){
+  var N=newsData(), set={}; if(!N) return set;
+  Object.keys(N).forEach(function(y){ Object.keys(N[y]).forEach(function(m){
+    (N[y][m].days||[]).forEach(function(d){ set[d.date]=1; }); }); });
+  return set;
 }
+function todayIso(){ var t=new Date(); return t.getFullYear()+'-'+pad2(t.getMonth()+1)+'-'+pad2(t.getDate()); }
+function paintCalLabel(){
+  var st=nstate(); if(!st) return;
+  if(st.filter){ calTxt.textContent='Szűrt hírek'; return; }
+  if(st.d){ var p=st.d.split('-'); calTxt.textContent=p[0]+'. '+HU_MON[+p[1]-1]+' '+(+p[2])+'.'; }
+  else calTxt.textContent=st.y+'. '+HU_MON_LONG[+st.m-1];
+}
+function renderCal(){
+  var days=newsDaySet(), keys=Object.keys(days).sort(); if(!keys.length) return;
+  var today=todayIso(), minYm=keys[0].slice(0,7), maxYm=(today>keys[keys.length-1]?today:keys[keys.length-1]).slice(0,7);
+  var y=calView.y, m=calView.m, ym=y+'-'+pad2(m), st=nstate(), sel=(st&&!st.filter)?st.d:null;
+  var lead=(new Date(y,m-1,1).getDay()+6)%7, n=new Date(y,m,0).getDate(), cnt=0;
+  var h='<div class="cal-nav"><button type="button" data-step="-1" aria-label="Előző hónap"'+(ym<=minYm?' disabled':'')+'>‹</button>'+
+        '<b>'+y+'. '+HU_MON_LONG[m-1]+'</b>'+
+        '<button type="button" data-step="1" aria-label="Következő hónap"'+(ym>=maxYm?' disabled':'')+'>›</button></div>'+
+        '<div class="cal-grid">'+['H','K','Sze','Cs','P','Szo','V'].map(function(x){ return '<div class="wd">'+x+'</div>'; }).join('');
+  for(var i=0;i<lead;i++) h+='<div></div>';
+  for(var d=1;d<=n;d++){
+    var iso=ym+'-'+pad2(d), has=!!days[iso], cls='cd'+(has?' has':'')+(iso===today?' today':'')+(iso===sel?' sel':'');
+    if(has){ cnt++; h+='<button type="button" class="'+cls+'" data-date="'+iso+'" aria-label="'+iso+' hírei">'+d+'</button>'; }
+    else h+='<div class="'+cls+'">'+d+'</div>';
+  }
+  h+='</div><div class="cal-foot"><span>'+cnt+' hírnap ebben a hónapban</span>'+
+     '<button type="button" data-latest="1">Legfrissebb</button></div>';
+  calMenu.innerHTML=h;
+}
+function placeCal(){
+  var r=calBtn.getBoundingClientRect(), w=Math.min(300,window.innerWidth-16);
+  calMenu.style.width=w+'px';
+  calMenu.style.left=Math.min(Math.max(8,r.left),window.innerWidth-w-8)+'px';
+  calMenu.style.top=(r.bottom+8)+'px';
+}
+function openCal(){
+  var st=nstate(); if(!st) return;
+  closePick();
+  var base=(st.d&&!st.filter?st.d:(st.y+'-'+st.m)).split('-');
+  calView={y:+base[0], m:+base[1]}; renderCal();
+  calMenu.hidden=false; pickScrim.hidden=false; calBtn.setAttribute('aria-expanded','true'); placeCal();
+  var f=calMenu.querySelector('.cd.sel')||calMenu.querySelector('.cd.has'); if(f) f.focus();
+}
+function closeCal(focusBack){
+  if(calMenu.hidden) return;
+  calMenu.hidden=true; if(pickMenu.hidden) pickScrim.hidden=true;
+  calBtn.setAttribute('aria-expanded','false'); if(focusBack) calBtn.focus();
+}
+calBtn.addEventListener('click',function(){ calMenu.hidden?openCal():closeCal(true); });
+calMenu.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('button'); if(!t||t.disabled) return;
+  if(t.getAttribute('data-step')){
+    var m=calView.m+(+t.getAttribute('data-step')), y=calView.y;
+    if(m<1){ m=12; y--; } if(m>12){ m=1; y++; }
+    calView={y:y,m:m}; renderCal(); return;
+  }
+  var date=t.getAttribute('data-date');
+  if(t.getAttribute('data-latest')){ var ks=Object.keys(newsDaySet()).sort(); date=ks[ks.length-1]; }
+  if(date){ var w=nwin(); if(w&&w.goDay) w.goDay(date); closeCal(true); setTimeout(paintCalLabel,60); }
+});
+pickScrim.addEventListener('click',function(){ closeCal(); });
+window.addEventListener('resize',function(){ if(!calMenu.hidden) placeCal(); });
+/* az alcím kövesse a nézet saját naptárát és görgetését is */
+(function watchNews(){
+  var w=nwin(), d=w&&w.document, cd=d&&d.getElementById('caldays'), mid=d&&d.getElementById('mid');
+  if(!cd||!mid||typeof w.newsState!=='function'){ setTimeout(watchNews,300); return; }
+  var mo=new MutationObserver(paintCalLabel);
+  mo.observe(cd,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+  mo.observe(mid,{childList:true});
+  paintCalLabel();
+})();
+
+/* a fiók „Naptár” menüpontja: Hírek nézet + fejléc-naptár (a fiók bezárása után) */
+function toggleCal(){ showView('news'); setTimeout(openCal,260); }
 
 /* --- gyorsítótár: 1 napig érvényes (sw.js) ---------------------------------
    A ↻ gomb nem "újratöltés": üríti a gyorsítótárat, és hálózatról húzza le a

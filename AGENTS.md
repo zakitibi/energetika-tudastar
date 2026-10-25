@@ -37,6 +37,9 @@ Egy statikus web-app, amit a GitHub Pages szolgál ki, és amelynek tartalmát
 |---|---|
 | `index.html` | Átirányít az `Energetika.html`-re (Pages belépési pont) |
 | `sw.js` | Service worker: 1 napig érvényes gyorsítótár (ld. 3b.) |
+| `manifest.webmanifest` | PWA-manifest (név, `start_url`, `display: standalone`, ikonok) |
+| `icons/` | App-ikon: `icon.svg` a forrás (és a böngészőfül SVG-ikonja), `src/*.svg` a változatok, a PNG-k ezekből generálva |
+| `tools/render-icons.mjs` | A PNG-ikonok újragenerálása az SVG-kből (Playwright/Chromium): `node tools/render-icons.mjs` |
 | `Energetika.html` | **A fő app** — generált egyfájlos SPA, 4 fül (Tananyag/Hírek/Mértékegységek/Kvíz), mind escaped `srcdoc` iframe |
 | `Energetika_Tananyag.html` | **A leckék EGYETLEN forrása** (tartalom + sidebar + `const QUIZ`/`TITLES`); a SPA Tananyag+Kvíz füle ebből generálódik |
 | `news/YYYY-MM News.md` | Havi hírgyűjtő (a Hírek fül ebből épül) |
@@ -106,10 +109,14 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   újraszámolás. A felhő a 90 leggyakoribb kulcsszót mutatja log-skálán, stabil (hash
   szerinti) sorrendben és színnel, hogy csúsztatáskor ne ugráljon. A kis-nagybetű nem
   számít külön szónak; a leggyakoribb írásmód jelenik meg.
-- **A „Naptár” menüpont nem nézet, hanem művelet** (`MENU[].act`): a Hírek-nézet `.nav`
-  oszlopát nyitja/zárja a srcdoc iframe-ben (azonos eredetű, közvetlenül elérhető). A nézet
-  saját `#navtoggle` sávja ezért `display:none` a news srcdoc CSS-ében. 900 px fölött a
-  menüpont rejtve van, mert ott a navigátor állandóan látszik.
+- **Fejléc-naptár (Hírek nézet)** (`#calpick` + `#calmenu`): a cím mellett alcímként a
+  kiválasztott hírnap („2026. okt. 21.”), és belőle gördül le egy havi naptár — a hírnapok
+  kattinthatók, a hónapok ‹ › gombbal léptethetők az első hírnaptól a mai napig, „Legfrissebb”
+  gombbal. A választás a Hírek-nézet `goDay(dátum)` függvényét hívja (szükség esetén hónapot
+  vált és kilép a szűrésből); az alcímet `MutationObserver` + `newsState()` tartja szinkronban.
+  Más nézetben a `body.newsview` hiányában nem látszik.
+- **A „Naptár” menüpont** (`MENU[].act`) a Hírek nézetre vált és megnyitja a fejléc-naptárt
+  (minden szélességen). A Hírek-nézet saját `#navtoggle` sávja `display:none` a news srcdoc CSS-ében.
 - A Tananyag-iframe saját ☰ („Leckék”) gombja **el van rejtve** az `embed-override` CSS-ben
   (`.top .burger{display:none!important}`) — a leckéket a fejléc leckeválasztója kezeli.
   Az `embed-override` blokkot a `rebuild_tananyag_html.py` a *jelenlegi* `view-tan`-ból
@@ -140,6 +147,11 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
   MVM Csoport→MVM, gáztárolók→gáztároló, Magyar Péter kormány→Tisza-kormány.
 - **Szűrt mód (`filterKw`)**: a `renderNews()`/`jumpDay()`/`jumpKw()` eleje kilép belőle
   (`kwActive`), így a hónap-/napválasztás és a kulcsszó-chipek szűrés közben is működnek.
+- **Állapot-API a shellnek** (view-news srcdoc): `newsState()` → `{y,m,d,filter}` (a `curYear`
+  stb. `let`-változók, nincsenek a window-n), `goDay(dátum)`. A görgetésfigyelő (`updateSpy`)
+  mobilon a lapgörgetést is figyeli, rejtett nézetben nem fut (különben minden pozíció 0), és
+  programozott ugrás után 1,7 s-ig (`spyLock`) nem írja felül a választott napot. A `jumpDay`
+  a `tocGo()`-t használja (görgetés + igazítás); a felhasználó saját görgetése megszakítja az igazítást.
 - **Napi tartalomjegyzék.** A generátor (`mdToHtml(body,'h'+date)` → `tocHtml()`) minden
   olyan nap elejére, ahol **legalább 2 hír** van, egy soronként egy címes listát tesz
   (`.daytoc`); a `### N. cím` fejlécek `id="h<dátum>-<n>"` azonosítót kapnak. A linkek
@@ -204,6 +216,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-25: Fejléc-naptár a Hírek nézetben; PWA-manifest + app-ikon (⚡ a fejléc kék színátmenetén) és böngészőfül-ikon; a mobil görgetésfigyelő javítva.
 - 2026-10-21: 17–21. lecke (hálózatok, energiaszámla, hőenergia, üzemanyagpiac, prosumerek) — `Energetika_Tananyag.html` + `rebuild_tananyag_html.py`.
 - 2026-10-21: Szófelhő: szóra kattintva szűrt Hírek (időszakra, hónapokon át); kulcsszó-összevonás (`KW_ALIAS`) egy helyen.
 - 2026-10-21: Új **Szófelhő** nézet a fiókban: a Hírek kulcsszavaiból, bal oldali függőleges tól–ig idővonallal (első hírnap → ma).
