@@ -39,6 +39,7 @@ Egy statikus web-app, amit a GitHub Pages szolgál ki, és amelynek tartalmát
 | `sw.js` | Service worker: 1 napig érvényes gyorsítótár (ld. 3b.) |
 | `manifest.webmanifest` | PWA-manifest (név, `start_url`, `display: standalone`, ikonok) |
 | `icons/` | App-ikon: `icon.svg` a forrás (és a böngészőfül SVG-ikonja), `src/*.svg` a változatok, a PNG-k ezekből generálva |
+| `tools/check-shell.cjs` | **Kitelepítés előtt kötelező:** a shell szkript ES2017-kompatibilitása + indításkor még üres változók |
 | `tools/map-layout.py` | A Piaci térkép elrendezés-optimalizálója (x-pozíciók + él-görbítések javaslata) |
 | `tools/render-icons.mjs` | A PNG-ikonok újragenerálása az SVG-kből (Playwright/Chromium): `node tools/render-icons.mjs` |
 | `Energetika.html` | **A fő app** — generált egyfájlos SPA, 4 fül (Tananyag/Hírek/Mértékegységek/Kvíz), mind escaped `srcdoc` iframe |
@@ -77,6 +78,15 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 - **Az ⓘ panel a live állapotból épül:** nézetenként ● (betöltött) / ▲ (nem) + forráscímke.
 - **A fiók lábrésze:** balra a **frissítési állapot** (a tartalom kora + mikor jött le a
   hálózatról), jobbra a ↻ gomb. Nem egymásba ágyazva — `<button>` egy `<a>`-ban érvénytelen.
+- **⚠️ iPhone Safari időzítés — a valódi ok (2026-10-25).** Safarin a srcdoc iframe-ek (Hírek,
+  Tananyag) **a shell szkript ELŐTT** elkészülhetnek, ezért a `watchNews`/`watchLesson` figyelők
+  azonnal lefutnak. A fejléc-naptár így a `HU_MON`-t használta, mielőtt az értéket kapott volna (az a
+  Szófelhő részben volt) → a hiba a szkript közepén leállította a futást, és a Szófelhő, Fogalomtár,
+  Piaci térkép üres maradt. Chrome-ban az iframe később készül el, ezért ott sosem jött elő.
+  **Szabály: indításkor futó kód csak a szkriptben ELŐTTE értéket kapó változót használhat.**
+  **Kitelepítés előtt kötelező:** `node tools/check-shell.cjs` (ES2017-kompatibilitás + ez a hibaosztály).
+  Safari-időzítés Chromiumban így szimulálható: a shell szkriptet `type="text/plain"`-ként a `load`
+  esemény után, indirekt `eval`-lal futtatni.
 - **Hibatűrés és diagnosztika (2026-10-25).** ⚠️ Tanulság: ha a böngésző a `navigator.serviceWorker`
   (vagy `localStorage`/`caches`) elérésekor hibát dob — Chrome/Safari letiltott sütik/webhelyadatok
   mellett, privát módban, app-ba épített böngészőben —, egy **felső szintű** dobás a shell szkript
@@ -257,6 +267,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-25: A valódi iPhone-hiba javítva (`HU_MON` a szkript elejére; Safarin az iframe-ek a shell előtt készülnek el); `tools/check-shell.cjs`.
 - 2026-10-25: Hibatűrés letiltott webhelyadatok mellett (a Szófelhő/Fogalomtár/Piaci térkép eddig ilyenkor üres maradt); hibasáv + `APP_VERSION`.
 - 2026-10-25: Service worker: az oldal hálózat-először (a PWA beragadt a régi változaton), cache v2, automatikus frissítés-ellenőrzés.
 - 2026-10-25: Piaci térkép nézet (21 szereplő, 39 kapcsolat, csúsztatás/nagyítás); Szófelhő: korai adat-export + látható hibaállapot.

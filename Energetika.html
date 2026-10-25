@@ -2152,7 +2152,12 @@ updateInfo();
    kiderül, ha egy eszköz (pl. telepített PWA) régi példányt futtat.
    Hibasáv: a shell és a Hírek-nézet futási hibáit a lap alján kiírja (max. 3-at),
    hogy egy képernyőképből látszódjon az ok. */
-var APP_VERSION='2026.10.25-7';
+var APP_VERSION='2026.10.25-8';
+/* közös hónapnevek — a szkript ELEJÉN, mert a fejléc-naptár már induláskor használja:
+   iPhone Safarin a Hírek-nézet a shell szkript előtt elkészül, és a watchNews azonnal kiírja a
+   dátumot. Korábban ez a sor a Szófelhő részben volt, így ott még üres volt → a hiba a szkript
+   közepén leállította a futást, és a Szófelhő / Fogalomtár / Piaci térkép üres maradt. */
+var HU_MON=['jan.','febr.','márc.','ápr.','máj.','jún.','júl.','aug.','szept.','okt.','nov.','dec.'];
 (function(){
   var n=0;
   function show(msg){
@@ -2577,7 +2582,6 @@ document.getElementById('reloadbtn2').addEventListener('click',function(){refres
    „Kulcsszavak:” sor. Balra függőleges idővonal: a teteje az első gyűjtött
    hírnap, az alja MINDIG a mai nap; két fogantyú állítja a tól–ig időszakot.
    A pozíciók %-ban vannak megadva, így átméretezéskor nincs mit újraszámolni. */
-var HU_MON=['jan.','febr.','márc.','ápr.','máj.','jún.','júl.','aug.','szept.','okt.','nov.','dec.'];
 var TL=null, PAD=14;
 function dayNum(iso){ var p=iso.split('-'); return Math.round(Date.UTC(+p[0],+p[1]-1,+p[2])/864e5); }
 function numDate(n){ return new Date(n*864e5); }                       /* UTC-ben értendő */
