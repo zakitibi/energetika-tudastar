@@ -2270,8 +2270,9 @@ function renderInfo(){
     'a bal oldali ☰ menüből vagy a fenti fülekkel válthatsz köztük.</p>'+
     '<h3>Bekötve</h3><ul>'+rows+'</ul>'+
     '<h3>Frissítve</h3><p>'+(st?st:'nem olvasható')+' — ennyi a letöltött példány kora. '+
-    'A lap egy napig a gyorsítótárból jön (gyors és offline is nyílik); a fiók alján lévő '+
-    '↻ gomb üríti a gyorsítótárat, és hálózatról húzza le a legutolsó állapotot.</p>'+
+    'Online a lap mindig a legfrissebb változatot tölti le; a gyorsítótár offline működéshez kell '+
+    '(és az ikonokat egy napig tárolja). A fiók alján lévő ↻ gomb üríti a gyorsítótárat, '+
+    'és hálózatról húzza le a legutolsó állapotot.</p>'+
     '<div class="pfoot"><button class="btn" type="button" id="info-close">Bezár</button></div>';
   document.getElementById('info-close').addEventListener('click',closeInfo);
 }
@@ -2473,14 +2474,25 @@ function toggleCal(){ showView('news'); setTimeout(openCal,260); }
 /* --- gyorsítótár: 1 napig érvényes (sw.js) ---------------------------------
    A ↻ gomb nem "újratöltés": üríti a gyorsítótárat, és hálózatról húzza le a
    legutolsó állapotot. Amíg nem végzett, tiltva van és forog.               */
-var SW_OK=('serviceWorker' in navigator);
+var SW_OK=('serviceWorker' in navigator), SW_CACHE='energetika-v2';   /* = a sw.js CACHE neve */
 if(SW_OK){
-  navigator.serviceWorker.register('sw.js').catch(function(){ SW_OK=false; });
+  /* updateViaCache:'none' + update(): minden indításkor megnézi, van-e új sw.js —
+     telepített PWA-ban is (ott külön tároló van, és korábban beragadt a régi változat) */
+  var hadController=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'})
+    .then(function(r){ try{ r.update(); }catch(e){} })
+    .catch(function(){ SW_OK=false; });
+  /* ha új service worker vette át az irányítást, EGYSZER újratölt, hogy a friss oldal jöjjön */
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
+    if(!hadController) return;                        /* első telepítés: nincs mit frissíteni */
+    try{ if(sessionStorage.getItem('sw-reloaded')) return; sessionStorage.setItem('sw-reloaded','1'); }catch(e){ return; }
+    location.reload();
+  });
 }
 function cacheAge(){           /* mikor került le a jelenlegi példány a hálózatról */
   if(!('caches' in window)) return Promise.resolve(null);
-  return caches.open('energetika-v1')
-    .then(function(c){ return c.match(location.pathname,{ignoreSearch:true}); })
+  return caches.open(SW_CACHE)
+    .then(function(c){ return c.match(location.origin+location.pathname); })
     .then(function(r){
       if(!r) return null;
       var t=Date.parse(r.headers.get('x-cached-at')||'');

@@ -77,14 +77,19 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 - **Az ⓘ panel a live állapotból épül:** nézetenként ● (betöltött) / ▲ (nem) + forráscímke.
 - **A fiók lábrésze:** balra a **frissítési állapot** (a tartalom kora + mikor jött le a
   hálózatról), jobbra a ↻ gomb. Nem egymásba ágyazva — `<button>` egy `<a>`-ban érvénytelen.
-- **Gyorsítótár: `sw.js` (service worker), 1 nap.** 24 óránál fiatalabb másolat azonnal a
-  cache-ből megy ki, és a háttérben frissül; 24 óra fölött hálózat először, hiba esetén cache;
-  offline a lejárt példány is kimegy. A letöltés idejét az `x-cached-at` fejléc hordozza a
-  bemásolt válaszon — ebből írja ki a lábrész az állapotot. A **↻ gomb** `CLEAR` üzenettel
-  üríti a cache-t, törli a `caches` bejegyzéseket, majd `?v=<ts>`-sel tölt újra.
-  **Új deploy után a felhasználó legfeljebb egy betöltésnyit késik** (a háttér-revalidáció
-  miatt), vagy azonnal frissíthet a ↻-val. Ha a cache szerkezete változik, emeld a `CACHE`
-  nevet (`energetika-v1` → `-v2`).
+- **Gyorsítótár: `sw.js` (service worker).** **Az oldal (HTML) hálózat-először:** online mindig a
+  legfrissebb jön; ha 4 s alatt nincs válasz vagy offline, a gyorsítótár utolsó példánya. **Minden más**
+  (ikonok, manifest) 1 napig cache-ből, háttérfrissítéssel. A hálózati kérés **URL-lel** megy (egy
+  `navigate` módú Request + nem üres init egyes böngészőkben TypeError-t dob). A cache-kulcs query
+  nélküli. A letöltés idejét az `x-cached-at` fejléc hordozza — ebből írja ki a fiók lábrésze az állapotot.
+  A **↻ gomb** `CLEAR` üzenettel üríti a cache-t, majd `?v=<ts>`-sel tölt újra. A shell
+  `register('sw.js',{updateViaCache:'none'})` + `update()`-tel minden indításkor ellenőrzi az új sw.js-t,
+  és ha új service worker veszi át az irányítást, **egyszer automatikusan újratölt**.
+  **Ha a cache szerkezete változik, emeld a `CACHE` nevet** (most `energetika-v2`) a `sw.js`-ben ÉS
+  a shell `SW_CACHE` változójában; az `activate` a többi cache-t törli.
+  ⚠️ **Tanulság (2026-10-25):** korábban az oldal is cache-ből jött (stale-while-revalidate), és a
+  telepített PWA (iOS-en külön tárolóval) beragadt a telepítéskori változaton — böngészőben jó volt,
+  PWA-ban hiányzott a Fogalomtár és a Szófelhő. Az oldalt soha ne tedd cache-először.
 - **Leckeválasztó a fejlécben** (`#lessonpick` + `#lessonmenu`): a Tananyag nézetben a cím
   mellett alcímként ott az aktuális lecke, és abból gördül le a teljes leckelista (720 px-ig
   széles, több oszlopos — szándékosan szélesebb a fióknál). A lista a Tananyag-iframe saját
@@ -241,6 +246,7 @@ Az `Energetika.html` **nem generált** része a fejléc + a fiók + a záró `<s
 architektúra · deploy mód · fájlstruktúra · a generátor-logika · fontos konvenció.
 
 ### Állapot / változásnapló
+- 2026-10-25: Service worker: az oldal hálózat-először (a PWA beragadt a régi változaton), cache v2, automatikus frissítés-ellenőrzés.
 - 2026-10-25: Piaci térkép nézet (21 szereplő, 39 kapcsolat, csúsztatás/nagyítás); Szófelhő: korai adat-export + látható hibaállapot.
 - 2026-10-25: Fogalomtár nézet (97 fogalom a 21 lecke 103 villámkártyájából); a naptár a fejléc sorában.
 - 2026-10-25: Fejléc-naptár a Hírek nézetben; PWA-manifest + app-ikon (⚡ a fejléc kék színátmenetén) és böngészőfül-ikon; a mobil görgetésfigyelő javítva.
